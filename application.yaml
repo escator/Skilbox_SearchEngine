@@ -17,8 +17,8 @@ jsop:
 
 indexing-settings:
   sites:
-    - url: https://sendel.ru/
-      name: Лента.ру
+    - url: https://sendel.ru
+      name: Konstantin Shibkov
 #    - url: https://www.lenta.ru
 #      name: Лента.ру
 #    - url: https://www.skillbox.ru

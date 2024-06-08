@@ -6,13 +6,11 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.springframework.http.HttpStatus;
-import org.springframework.stereotype.Service;
 import searchengine.dto.index.HtmlParseResponse;
 
 import java.io.IOException;
-import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Set;
 
 /**
@@ -48,29 +46,33 @@ public class HtmlParseService {
         if  (isReady)  {
             return new HtmlParseResponse(document, HttpStatus.OK);
         }
+        HtmlParseResponse response  = new HtmlParseResponse();
         try {
             document = Jsoup.connect(url)
                     .userAgent(agent)
                     .referrer(referrer)
                     .get();
             isReady= true;
+            response.setDocument(document);
+            response.setStatus(HttpStatus.OK);
         } catch (IOException e) {
             log.error("Error while parsing html from " + url, e);
-            document = null;
+            response.setDocument(new Document(""));
+            response.setStatus(HttpStatus.BAD_REQUEST);
         }
-        return new HtmlParseResponse(document, HttpStatus.OK);
+        return response;
     }
 
     /**
      * Возвращает список всех ссылок на странице с указанным url
      * @return LinkedHashSet<String> - список всех ссылок
      */
-    public List<String> getAllLinksOnPage() {
+    public Set<String> getAllLinksOnPage() {
         if (!isReady) {
             document = parse().getDocument();
         }
         if (document == null) {
-            return new ArrayList<>();
+            return new HashSet<>();
         }
         Elements links = document.select("a[href]");
 
@@ -78,7 +80,7 @@ public class HtmlParseService {
         for (Element element : links) {
             linkSet.add(element.attr("href"));
         }
-        return new ArrayList<>(normalizeLinks(linkSet));
+        return normalizeLinks(linkSet);
     }
 
 
@@ -95,7 +97,7 @@ public class HtmlParseService {
                     link = link.substring(0, link.length() - 1);
                 }
                 if (link.startsWith("/") && link.length() > 1) {
-                    normalizedLinks.add(root + link.substring(1));
+                    normalizedLinks.add(root + link);
                 } else if (link.startsWith(url) && link.length() > url.length()) {
                     normalizedLinks.add(link);
                 }

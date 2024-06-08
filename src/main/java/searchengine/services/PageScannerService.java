@@ -6,10 +6,13 @@ import searchengine.dto.index.HtmlParseResponse;
 import searchengine.dto.index.PageDto;
 import searchengine.model.Page;
 import searchengine.model.Site;
+import searchengine.repository.LinkStorage;
 import searchengine.repository.PageRepository;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.RecursiveAction;
 
 @Slf4j
@@ -20,53 +23,43 @@ public class PageScannerService extends RecursiveAction {
     private String rootUrl;
     private Site site;
     private PageRepository pageRepository;
+    private HashSet<String> visitedLinks;
 
     // конструкторы
     public PageScannerService(PageDto pageDto)  {
-        this.rootUrl  = pageDto.getRootUrl();
+        if (pageDto.getRootUrl().endsWith("/")) {
+            this.rootUrl = pageDto.getUrl().substring(0, pageDto.getUrl().length() - 1);
+        } else {
+            this.rootUrl  = pageDto.getRootUrl();
+        }
         this.url = pageDto.getUrl();
         this.site  = pageDto.getSite();
         this.pageRepository = pageDto.getPageRepository();
     }
 
-    public PageScannerService(String rootUrl, String url) {
-        this.rootUrl  = rootUrl;
-        this.url = url;
-    }
     // end конструкторы
-
     @Override
     protected void compute() {
-
-        if (isVisitedLinks()) {
+        if (LinkStorage.containsLink(url)) {
             return;
         }
 
-        // Выдерживаем паузу в 200 - 300мс перед началом загрузки страницы
-        // рандомность для снижения шанса блокировки
-        pause();
-
         // Список ветвей рекурсии для каждой ссылки
         List<PageScannerService> tasks = new ArrayList<>();
-
         HtmlParseService htmlParseService  = new HtmlParseService(url, rootUrl);
+        // Получаем множество всех ссылок на странице без дублей
+        Set<String> linksOnPageList = htmlParseService.getAllLinksOnPage();
+        LinkStorage.addLink(url);
+
+        // Выдерживаем паузу в 200 - 300мс перед началом загрузки страницы
+        // рандомность для снижения шанса блокировки
+        pause(200, 300);
 
         // Получаем doc и статус
         HtmlParseResponse htmlParseResponse = htmlParseService.parse();
-
-
-        Page page = new Page();
-        page.setPath(url);
-        page.setCode(htmlParseResponse.getStatus().value());
-        page.setSite(site);
-        page.setContent(htmlParseResponse.getDocument().toString());
-        synchronized (pageRepository) {
-            pageRepository.save(page);
+        if (!isVisitedLinks(getShortUrl(url))) {
+            savePageToRepository(url, htmlParseResponse);
         }
-
-        // Получаем множество всех ссылок на странице без дублей
-        List<String> linksOnPageList = htmlParseService.getAllLinksOnPage();
-
 
         // Создаем ветку рекурсии для каждой ссылки на странице
         for (String link : linksOnPageList) {
@@ -75,19 +68,38 @@ public class PageScannerService extends RecursiveAction {
             tasks.add(task);
             task.fork();
         }
-
     }
 
+    private void savePageToRepository(String url, HtmlParseResponse htmlParseResponse)  {
+        Page page = new Page();
+        page.setPath(getShortUrl(url));
+        page.setCode(htmlParseResponse.getStatus().value());
+        page.setSite(site);
+        page.setContent(htmlParseResponse.getDocument().toString());
+        synchronized (pageRepository) {
+            pageRepository.save(page);
+        }
+    }
 
-    private boolean isVisitedLinks() {
+    private String getShortUrl(String url)   {
+        if (url.endsWith("/")) {
+            url.substring(0, url.length() - 1);
+        }
+        if (url == rootUrl) {
+            return "/";
+        }
+        return url.substring(rootUrl.length());
+    }
+
+    private boolean isVisitedLinks(String url) {
         Page page = new Page();
         page.setPath(url);
         Example<Page> example  = Example.of(page);
         return pageRepository.exists(example);
     }
 
-    private void pause()  {
-        int duration = 150 + (int)(Math.random() * 150);
+    private void pause(int min, int max)  {
+        int duration = min + (int)(Math.random() * (max - min));
         try {
             log.info(Thread.currentThread().getName() + " sleeping for " + duration + " ms");
             Thread.sleep(duration);
