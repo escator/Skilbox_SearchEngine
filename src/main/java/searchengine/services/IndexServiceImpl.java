@@ -2,13 +2,14 @@ package searchengine.services;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Example;
 import org.springframework.stereotype.Service;
+import searchengine.Application;
 import searchengine.config.JsopConnectionCfg;
 import searchengine.config.SiteDto;
 import searchengine.config.SitesList;
 import searchengine.dto.index.PageDto;
+import searchengine.dto.statistics.IndexingResponse;
 import searchengine.model.IndexingStatus;
 import searchengine.model.Site;
 import searchengine.repository.LinkStorage;
@@ -32,22 +33,31 @@ public class IndexServiceImpl implements IndexService {
     private final JsopConnectionCfg jsopConnectionCfg;
 
     @Override
-    public void indexingAll() {
+    public IndexingResponse indexingAll() {
         log.info("Starting indexing");
-        deleteAll();
+        Application.setIndexingRunning(true);
         List<SiteDto> siteList = sitesList.getSites();
-        for (SiteDto site : siteList) {
-            log.info(site.toString());
-            indexingSite(site);
+        for (SiteDto siteDto : siteList) {
+            log.info(siteDto.toString());
+            indexingSite(siteDto);
         }
-
+        return new IndexingResponse(true, null);
     }
 
     @Override
     public void indexingSite(SiteDto siteDto)  {
-        Site site  = new Site();
-        site.setName(siteDto.getName());
-        site.setUrl(siteDto.getUrl());
+        if (!isValidSite(siteDto)) {
+            log.info("Site is not valid");
+            return;
+        }
+        Application.setIndexingRunning(true);
+        Site s;
+        if ((s = find(null, siteDto.getName(), siteDto.getUrl())) != null)  {
+            delete(s);
+        }
+
+
+        Site site  = siteDtoToSiteModel(siteDto);
         site.setStatus(IndexingStatus.INDEXING);
         site.setStatusTime(LocalDateTime.now());
         site = save(site);
@@ -69,7 +79,11 @@ public class IndexServiceImpl implements IndexService {
             }
         }
         LinkStorage.removeAll();
-        updateStatus(site, IndexingStatus.INDEXED);
+        if (Application.isStopIndexing()) {
+            updateStatus(site, IndexingStatus.FAILED);
+        } else  {
+            updateStatus(site, IndexingStatus.INDEXED);
+        }
     }
 
     public Site save(Site site)  {
@@ -92,32 +106,74 @@ public class IndexServiceImpl implements IndexService {
         pageRepository.deleteAll();
     }
 
+    /**
+     * Поиск в БД таблица sites. Если указано id, то поиск будет произведен по id
+     * параметры name и url будут проигнорированы.
+     * если параметр id не указан, то поиск будет произведен по url или name
+     * @param id    Integer id записи (может быть null)
+     * @param name  String название сайта (может быть null)
+     * @param url   String url сайта (может быть null)
+     * @return  Site сущность или null
+     */
     @Override
-    public Site find(Site site) {
+    public Site find(Integer id, String name, String url) {
+        if (id != null)  {
+            return findById(id);
+        }
+        Site site = new Site();
+        site.setName(name);
+        site.setUrl(url);
         Example<Site> example = Example.of(site);
         return siteRepository.findOne(example).orElse(null);
     }
 
     @Override
-    public void updateDate(Site site, LocalDateTime date) {
-        Site existingSite = find(site);
-        existingSite.setStatusTime(date);
-        siteRepository.save(existingSite);
+    public Site findById(Integer id)  {
+        return siteRepository.findById(id).orElse(null);
     }
 
     @Override
-    public void updateStatus(Site site, IndexingStatus indexingStatus) {
+    public void updateDate(Site site, LocalDateTime date) {
+        Site existingSite = find(null, site.getName(), site.getUrl());
+        if (existingSite != null)  {
+            existingSite.setStatusTime(date);
+            siteRepository.save(existingSite);
+        }
+    }
+
+    @Override
+    public void updateStatus(Site site, IndexingStatus newIndexingStatus) {
         log.info("Updating site STATUS" + site.getName());
         Optional<Site> optionalSite = siteRepository.findById(site.getId());
         if (optionalSite.isPresent()) {
             Site existingSite = optionalSite.get();
-            existingSite.setStatus(indexingStatus);
+            existingSite.setStatus(newIndexingStatus);
             existingSite.setStatusTime(LocalDateTime.now());
             siteRepository.save(existingSite);
         }
     }
 
-    public static searchengine.model.Site siteCfgToSiteModel(SiteDto siteCfg) {
+    /**
+     * Проверяем присутствует ли в списке сайтов для индексации данный домен
+     * @param siteDto
+     * @return
+     */
+    public boolean isValidSite(SiteDto siteDto)   {
+        String url  = siteDto.getUrl();
+        boolean res = false;
+        if (url == null || url.isEmpty()) {
+            res = false;
+        }
+        List<SiteDto> siteList = sitesList.getSites();
+        for  (SiteDto siteCfg : siteList) {
+            if (url.startsWith(siteCfg.getUrl())) {
+                res = true;
+                break;
+            }
+        }
+        return res;
+    }
+    public static searchengine.model.Site siteDtoToSiteModel(SiteDto siteCfg) {
         searchengine.model.Site site = new searchengine.model.Site();
         site.setName(siteCfg.getName());
         site.setUrl(siteCfg.getUrl());

@@ -1,6 +1,7 @@
 package searchengine.services;
 
 import lombok.extern.slf4j.Slf4j;
+import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -44,21 +45,24 @@ public class HtmlParseService {
      */
     public HtmlParseResponse parse() {
         if  (isReady)  {
-            return new HtmlParseResponse(document, HttpStatus.OK);
+            return new HtmlParseResponse(document, HttpStatus.OK.value());
         }
+
         HtmlParseResponse response  = new HtmlParseResponse();
+        Connection connection  = Jsoup.connect(url)
+                .userAgent(agent)
+                .referrer(referrer);
+
         try {
-            document = Jsoup.connect(url)
-                    .userAgent(agent)
-                    .referrer(referrer)
-                    .get();
+            Connection.Response responseJsoup = connection.execute();
+            log.info("Status code:" + responseJsoup.statusCode() + " [Getting BODY from " + url + "]");
+            document = responseJsoup.parse();
             isReady= true;
             response.setDocument(document);
-            response.setStatus(HttpStatus.OK);
+            response.setStatus(responseJsoup.statusCode());
         } catch (IOException e) {
-            log.error("Error while parsing html from " + url, e);
             response.setDocument(new Document(""));
-            response.setStatus(HttpStatus.BAD_REQUEST);
+            response.setStatus(400);
         }
         return response;
     }

@@ -1,20 +1,23 @@
 package searchengine.repository;
 
+import lombok.extern.slf4j.Slf4j;
+
 import java.util.HashSet;
 import java.util.Set;
-
+import java.util.concurrent.ConcurrentSkipListSet;
+@Slf4j
 public class LinkStorage {
-    private static HashSet<String> links = new HashSet<>();
+    private static ConcurrentSkipListSet<String> links = new ConcurrentSkipListSet<>();
 
     public static synchronized void addLink(String link){
         links.add(link);
     }
 
-    public static synchronized void addAll(Set<String> linksSet) {
+    public static void addAll(Set<String> linksSet) {
         links.addAll(linksSet);
     }
 
-    public static synchronized Set<String> getLinks(){
+    public static Set<String> getLinks(){
         return links;
     }
 

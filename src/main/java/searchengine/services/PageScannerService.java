@@ -2,6 +2,7 @@ package searchengine.services;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Example;
+import searchengine.Application;
 import searchengine.dto.index.HtmlParseResponse;
 import searchengine.dto.index.PageDto;
 import searchengine.model.Page;
@@ -40,20 +41,24 @@ public class PageScannerService extends RecursiveAction {
     // end конструкторы
     @Override
     protected void compute() {
+        if (Application.isStopIndexing()) {
+            return;
+        }
         if (LinkStorage.containsLink(url)) {
             return;
         }
+        // Выдерживаем паузу в 200 - 300мс перед началом загрузки страницы
+        // рандомность для снижения шанса блокировки
+        pause(200, 500);
+        LinkStorage.addLink(url);
 
         // Список ветвей рекурсии для каждой ссылки
         List<PageScannerService> tasks = new ArrayList<>();
+
         HtmlParseService htmlParseService  = new HtmlParseService(url, rootUrl);
         // Получаем множество всех ссылок на странице без дублей
         Set<String> linksOnPageList = htmlParseService.getAllLinksOnPage();
-        LinkStorage.addLink(url);
 
-        // Выдерживаем паузу в 200 - 300мс перед началом загрузки страницы
-        // рандомность для снижения шанса блокировки
-        pause(200, 300);
 
         // Получаем doc и статус
         HtmlParseResponse htmlParseResponse = htmlParseService.parse();
@@ -73,7 +78,7 @@ public class PageScannerService extends RecursiveAction {
     private void savePageToRepository(String url, HtmlParseResponse htmlParseResponse)  {
         Page page = new Page();
         page.setPath(getShortUrl(url));
-        page.setCode(htmlParseResponse.getStatus().value());
+        page.setCode(htmlParseResponse.getStatus());
         page.setSite(site);
         page.setContent(htmlParseResponse.getDocument().toString());
         synchronized (pageRepository) {

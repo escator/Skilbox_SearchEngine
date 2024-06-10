@@ -2,8 +2,10 @@ package searchengine.controllers;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import searchengine.Application;
 import searchengine.config.SiteDto;
 import searchengine.dto.statistics.IndexingResponse;
 import searchengine.dto.statistics.StatisticsResponse;
@@ -33,17 +35,11 @@ public class ApiController {
         this.indexService = indexService;
     }
 
-    @GetMapping("/statistics")
-    public ResponseEntity<StatisticsResponse> statistics() {
-        return ResponseEntity.ok(statisticsService.getStatistics());
-    }
-
-
 ////////////////TEST METHODS /////////////////////
 //TODO удалить все тестовые методы перед презентацией проекта
 
-@GetMapping("/delete")
-    public ResponseEntity<IndexingResponse> delete()  {
+    @GetMapping("/delete")
+    public ResponseEntity<IndexingResponse> delete() {
         //TODO удалить метод после тестирования
         log.info("delete test data");
         List<Site> list = indexService.findAll();
@@ -51,8 +47,9 @@ public class ApiController {
         indexService.delete(list.get(0));
         return null;
     }
+
     @GetMapping("/setTestData")
-    public ResponseEntity<IndexingResponse> setTestData()  {
+    public ResponseEntity<IndexingResponse> setTestData() {
         //TODO удалить метод после тестирования
         log.info("Controller: set test data");
         testDataLoader.loadTestSites();
@@ -64,8 +61,31 @@ public class ApiController {
         log.info("Controller: get links: " + url);
         indexService.indexingSite(new SiteDto(url, "Test site"));
     }
+
+    @PostMapping("/validateUrl")
+    public void validateUrl(@RequestBody SiteDto site) {
+        boolean res = indexService.isValidSite(site);
+        log.info("Controller: validate url: " + site.getUrl() + " is " + res);
+    }
+
+    @PostMapping("/find")
+    public void find(@RequestBody SiteDto siteDto) {
+        Site res = indexService.find(null, siteDto.getName(), siteDto.getUrl());
+        log.info("Controller: find url:  " + siteDto.getUrl() + " is " + res.toString());
+    }
+
+    @PostMapping("/delete")
+    public void delete(@RequestBody SiteDto siteDto) {
+        indexService.delete(indexService.find(null, siteDto.getName(), siteDto.getUrl()));
+        log.info("Controller: delete url:  " + siteDto.getUrl());
+    }
 /////////END TEST METHODS //////////////
 
+    // ОСНОВНОЕ API ////////////
+    @GetMapping("/statistics")
+    public ResponseEntity<StatisticsResponse> statistics() {
+        return ResponseEntity.ok(statisticsService.getStatistics());
+    }
 
     @GetMapping("/startIndexing")
     public ResponseEntity<IndexingResponse> startIndexing() {
@@ -75,22 +95,32 @@ public class ApiController {
         // Если в настоящий момент индексация или переиндексация уже
         // запущена, метод возвращает соответствующее сообщение об ошибке.
         log.info("Controller: start indexing");
-        indexService.indexingAll();
+        if (Application.isIndexingRunning()) {
+            return new ResponseEntity<IndexingResponse>(
+                    new IndexingResponse(false, "Индексация уже запущена"),
+                    HttpStatus.FORBIDDEN);
+        }
+        IndexingResponse res = indexService.indexingAll();
 
-        return null;
+        return new ResponseEntity<>(res, HttpStatus.OK);
     }
 
     @GetMapping("/stopIndexing")
     public ResponseEntity<IndexingResponse> stopIndexing() {
-        //TODO implement
-        // Метод останавливает текущий процесс индексации (переиндексации).
-        // Если в настоящий момент индексация или переиндексация не происходит,
-        // метод возвращает соответствующее сообщение об ошибке.
-        return null;
+        if (!Application.isIndexingRunning())  {
+            return new ResponseEntity<IndexingResponse>(
+                    new IndexingResponse(false, "Индексация не запущена"),
+                    HttpStatus.FORBIDDEN);
+        } else {
+            Application.setStopIndexing(true);
+            return new ResponseEntity<IndexingResponse>(
+                    new IndexingResponse(true,  null),
+                    HttpStatus.OK);
+        }
     }
 
     @PostMapping("/indexPage")
-    public ResponseEntity<IndexingResponse> indexPage()  {
+    public ResponseEntity<IndexingResponse> indexPage() {
         //TODO implement
         // Метод добавляет в индекс или обновляет отдельную страницу, адрес
         // которой передан в параметре. Возвращает статус индекса.

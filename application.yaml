@@ -9,7 +9,9 @@ spring:
     url: jdbc:mysql://localhost:3306/search_engine?useSSL=false&requireSSL=false&allowPublicKeyRetrieval=true
   jpa:
     show_sql: true
-    hibernate.ddl-auto: create
+    hibernate.ddl-auto: update
+  jackson:
+    default-property-inclusion: non_null
 
 jsop:
   agent: Mozilla/5.0 (Windows; U; WindowsNT5.1; en-US; rv1.8.1.6) Gecko/20070725 Firefox/2.0.0.6

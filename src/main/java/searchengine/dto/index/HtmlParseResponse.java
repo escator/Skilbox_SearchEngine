@@ -14,5 +14,5 @@ import org.springframework.http.HttpStatus;
 @NoArgsConstructor
 public class HtmlParseResponse {
     private Document document;
-    private HttpStatus status;
+    private int status;
 }
