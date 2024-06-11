@@ -1,8 +1,6 @@
 package searchengine.services;
 
-import searchengine.Application;
 import searchengine.dto.index.PageDto;
-import searchengine.model.IndexingStatus;
 import searchengine.repository.LinkStorage;
 
 import java.util.concurrent.ForkJoinPool;
@@ -25,7 +23,7 @@ public class ThreadIndexingStarter implements Runnable {
             }
         }
 
-        LinkStorage.removeAll();
+        LinkStorage.clear();
 //        if (Application.isStopIndexing()) {
 //            updateStatus(site, IndexingStatus.FAILED);
 //        } else  {

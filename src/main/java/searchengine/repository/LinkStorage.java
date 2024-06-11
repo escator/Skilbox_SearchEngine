@@ -3,29 +3,20 @@ package searchengine.repository;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.HashSet;
-import java.util.Set;
-import java.util.concurrent.ConcurrentSkipListSet;
+
 @Slf4j
 public class LinkStorage {
-    private static ConcurrentSkipListSet<String> links = new ConcurrentSkipListSet<>();
+    private static HashSet<Integer> linksHash = new HashSet<>();
 
     public static synchronized void addLink(String link){
-        links.add(link);
-    }
-
-    public static void addAll(Set<String> linksSet) {
-        links.addAll(linksSet);
-    }
-
-    public static Set<String> getLinks(){
-        return links;
+        linksHash.add(link.hashCode());
     }
 
     public static synchronized boolean containsLink(String link) {
-        return links.contains(link);
+        return linksHash.contains(link.hashCode());
     }
 
-    public static void removeAll() {
-        links.clear();
+    public static void clear() {
+        linksHash.clear();
     }
 }
