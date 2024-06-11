@@ -68,22 +68,26 @@ public class IndexServiceImpl implements IndexService {
                 site,
                 pageRepository);
 
-        ForkJoinPool forkJoinPool = new ForkJoinPool();
-        forkJoinPool.invoke(new PageScannerService(pageDto));
-        while (forkJoinPool.getQueuedSubmissionCount() > 0 ||
-        forkJoinPool.getActiveThreadCount() > 0) {
-            try {
-                Thread.sleep(500);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
-        LinkStorage.removeAll();
-        if (Application.isStopIndexing()) {
-            updateStatus(site, IndexingStatus.FAILED);
-        } else  {
-            updateStatus(site, IndexingStatus.INDEXED);
-        }
+        Thread thread = new Thread(new ThreadIndexingStarter(pageDto));
+        thread.start();
+
+//        ForkJoinPool forkJoinPool = new ForkJoinPool();
+//        forkJoinPool.invoke(new PageScannerService(pageDto));
+//        while (forkJoinPool.getQueuedSubmissionCount() > 0 ||
+//        forkJoinPool.getActiveThreadCount() > 0) {
+//            try {
+//                Thread.sleep(500);
+//            } catch (InterruptedException e) {
+//                e.printStackTrace();
+//            }
+//        }
+
+//        LinkStorage.removeAll();
+//        if (Application.isStopIndexing()) {
+//            updateStatus(site, IndexingStatus.FAILED);
+//        } else  {
+//            updateStatus(site, IndexingStatus.INDEXED);
+//        }
     }
 
     public Site save(Site site)  {
