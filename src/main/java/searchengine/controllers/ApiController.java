@@ -11,6 +11,7 @@ import searchengine.dto.statistics.IndexingResponse;
 import searchengine.dto.statistics.StatisticsResponse;
 import searchengine.model.Site;
 import searchengine.services.IndexServiceImpl;
+import searchengine.services.RunIndexMonitor;
 import searchengine.services.StatisticsService;
 import searchengine.util.TestDataLoader;
 
@@ -95,7 +96,7 @@ public class ApiController {
         // Если в настоящий момент индексация или переиндексация уже
         // запущена, метод возвращает соответствующее сообщение об ошибке.
         log.info("Controller: start indexing");
-        if (Application.isIndexingRunning()) {
+        if (RunIndexMonitor.isIndexingRunning()) {
             return new ResponseEntity<IndexingResponse>(
                     new IndexingResponse(false, "Индексация уже запущена"),
                     HttpStatus.FORBIDDEN);
@@ -107,12 +108,12 @@ public class ApiController {
 
     @GetMapping("/stopIndexing")
     public ResponseEntity<IndexingResponse> stopIndexing() {
-        if (!Application.isIndexingRunning())  {
+        if (!RunIndexMonitor.isIndexingRunning())  {
             return new ResponseEntity<IndexingResponse>(
                     new IndexingResponse(false, "Индексация не запущена"),
                     HttpStatus.FORBIDDEN);
         } else {
-            Application.setStopIndexing(true);
+            RunIndexMonitor.setStopIndexing(true);
             return new ResponseEntity<IndexingResponse>(
                     new IndexingResponse(true,  null),
                     HttpStatus.OK);

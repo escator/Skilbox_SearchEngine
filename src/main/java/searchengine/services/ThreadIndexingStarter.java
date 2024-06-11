@@ -1,5 +1,6 @@
 package searchengine.services;
 
+import searchengine.Application;
 import searchengine.dto.index.PageDto;
 import searchengine.repository.LinkStorage;
 
@@ -14,6 +15,7 @@ public class ThreadIndexingStarter implements Runnable {
     public void run() {
         ForkJoinPool forkJoinPool = new ForkJoinPool();
         forkJoinPool.invoke(new PageScannerService(pageDto));
+        RunIndexMonitor.regIndexer(this);
         while (forkJoinPool.getQueuedSubmissionCount() > 0 ||
                 forkJoinPool.getActiveThreadCount() > 0) {
             try {
@@ -22,13 +24,9 @@ public class ThreadIndexingStarter implements Runnable {
                 e.printStackTrace();
             }
         }
-
         LinkStorage.clear();
-//        if (Application.isStopIndexing()) {
-//            updateStatus(site, IndexingStatus.FAILED);
-//        } else  {
-//            updateStatus(site, IndexingStatus.INDEXED);
-//        }
+        RunIndexMonitor.unregIndexer(this);
+
 
     }
 }

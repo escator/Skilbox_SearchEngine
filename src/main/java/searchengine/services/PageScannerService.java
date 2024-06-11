@@ -41,7 +41,7 @@ public class PageScannerService extends RecursiveAction {
     // end конструкторы
     @Override
     protected void compute() {
-        if (Application.isStopIndexing()) {
+        if (RunIndexMonitor.isStopIndexing()) {
             return;
         }
         if (LinkStorage.containsLink(url)) {

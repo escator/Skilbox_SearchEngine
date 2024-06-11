@@ -35,7 +35,7 @@ public class IndexServiceImpl implements IndexService {
     @Override
     public IndexingResponse indexingAll() {
         log.info("Starting indexing");
-        Application.setIndexingRunning(true);
+        RunIndexMonitor.setIndexingRunning(true);
         List<SiteDto> siteList = sitesList.getSites();
         for (SiteDto siteDto : siteList) {
             log.info(siteDto.toString());
@@ -50,7 +50,7 @@ public class IndexServiceImpl implements IndexService {
             log.info("Site is not valid");
             return;
         }
-        Application.setIndexingRunning(true);
+        RunIndexMonitor.setIndexingRunning(true);
         Site s;
         if ((s = find(null, siteDto.getName(), siteDto.getUrl())) != null)  {
             delete(s);
