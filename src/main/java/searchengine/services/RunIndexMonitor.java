@@ -30,10 +30,11 @@ public class RunIndexMonitor {
     }
 
     private static void switchIndexMonitor(){
-        if(indexers.size()>0){
+        if(indexers.size() > 0) {
             isIndexingRunning = true;
         } else {
             isIndexingRunning  = false;
+            stopIndexing  = false;
         }
         log.info("isIndexingRunning is {}", isIndexingRunning);
     }

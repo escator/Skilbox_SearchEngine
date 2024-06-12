@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import searchengine.dto.index.PageDto;
 import searchengine.dto.index.PageScannerResponse;
 import searchengine.repository.LinkStorage;
+import searchengine.repository.PageRepository;
 
 import java.util.concurrent.ForkJoinPool;
 
@@ -14,13 +15,15 @@ import java.util.concurrent.ForkJoinPool;
 @Slf4j
 public class ThreadIndexingManager implements Runnable {
     PageDto pageDto;
-    public ThreadIndexingManager(PageDto pageDto){
+    PageRepository repository;
+    public ThreadIndexingManager(PageDto pageDto, PageRepository repository){
         this.pageDto = pageDto;
+        this.repository = repository;
     }
     @Override
     public void run() {
         ForkJoinPool forkJoinPool = new ForkJoinPool();
-        PageScannerResponse response = forkJoinPool.invoke(new PageScannerService(pageDto));
+        PageScannerResponse response = forkJoinPool.invoke(new PageScannerService(pageDto, repository));
         RunIndexMonitor.regIndexer(this);
 
         // Ожидаем когда отработают весь пулл
@@ -34,7 +37,9 @@ public class ThreadIndexingManager implements Runnable {
         }
 
         LinkStorage.clear();
+        if (RunIndexMonitor.isStopIndexing()) {
+            log.info("ThreadIndexingManager was stopped");
+        }
         RunIndexMonitor.unregIndexer(this);
-        log.info("ThreadIndexingManager finished. Response: {}", response.getStatus());
     }
 }

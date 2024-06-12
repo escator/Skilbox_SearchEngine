@@ -17,6 +17,7 @@ import searchengine.repository.SiteRepository;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.Executors;
 
 @Slf4j
 @Service
@@ -47,7 +48,6 @@ public class IndexServiceImpl implements IndexService {
             log.info("Site is not valid");
             return;
         }
-        RunIndexMonitor.setIndexingRunning(true);
         Site s;
         if ((s = find(null, siteDto.getName(), siteDto.getUrl())) != null)  {
             delete(s);
@@ -62,29 +62,12 @@ public class IndexServiceImpl implements IndexService {
         PageDto pageDto = new PageDto(
                 siteDto.getUrl(),
                 siteDto.getUrl(),
-                site,
-                pageRepository);
+                site);
 
-        Thread thread = new Thread(new ThreadIndexingManager(pageDto));
+        Thread thread = new Thread(new ThreadIndexingManager(pageDto, pageRepository));
         thread.start();
 
-//        ForkJoinPool forkJoinPool = new ForkJoinPool();
-//        forkJoinPool.invoke(new PageScannerService(pageDto));
-//        while (forkJoinPool.getQueuedSubmissionCount() > 0 ||
-//        forkJoinPool.getActiveThreadCount() > 0) {
-//            try {
-//                Thread.sleep(500);
-//            } catch (InterruptedException e) {
-//                e.printStackTrace();
-//            }
-//        }
 
-//        LinkStorage.removeAll();
-//        if (Application.isStopIndexing()) {
-//            updateStatus(site, IndexingStatus.FAILED);
-//        } else  {
-//            updateStatus(site, IndexingStatus.INDEXED);
-//        }
     }
 
     public Site save(Site site)  {

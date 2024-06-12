@@ -13,5 +13,4 @@ public class PageDto {
     private String url;
     private String rootUrl;
     private Site site;
-    private PageRepository pageRepository;
 }

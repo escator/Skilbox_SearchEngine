@@ -22,14 +22,13 @@ import java.util.concurrent.RecursiveTask;
 public class PageScannerService extends RecursiveTask<PageScannerResponse> {
 
     // адрес сканируемой страницы
-    private String url;
-    private String rootUrl;
-    private Site site;
-    private PageRepository pageRepository;
-    private HashSet<String> visitedLinks;
+    private final String url;
+    private final String rootUrl;
+    private final Site site;
+    private final PageRepository pageRepository;
 
     // конструкторы
-    public PageScannerService(PageDto pageDto)  {
+    public PageScannerService(PageDto pageDto, PageRepository repository)  {
         // защищаемся от ссылки не соответствующей шаблону
         if (pageDto.getRootUrl().endsWith("/")) {
             this.rootUrl = pageDto.getUrl().substring(0, pageDto.getUrl().length() - 1);
@@ -38,7 +37,7 @@ public class PageScannerService extends RecursiveTask<PageScannerResponse> {
         }
         this.url = pageDto.getUrl();
         this.site  = pageDto.getSite();
-        this.pageRepository = pageDto.getPageRepository();
+        this.pageRepository = repository;
     }
 
     // end конструкторы
@@ -69,15 +68,16 @@ public class PageScannerService extends RecursiveTask<PageScannerResponse> {
 
         // Получаем doc и статус
         HtmlParseResponse htmlParseResponse = htmlParseService.parse();
+        //TODO принять решение по нужности данной проверки в БД.
         if (!isVisitedLinks(getShortUrl(url))) {
             savePageToRepository(url, htmlParseResponse);
         }
 
         // Создаем ветку рекурсии для каждой ссылки на странице
         for (String link : linksOnPageList) {
-            PageDto pageDto = new PageDto(link, rootUrl, site, pageRepository);
-            PageScannerService task = new PageScannerService(pageDto);
-            tasks.add(task);
+            PageDto pageDto = new PageDto(link, rootUrl, site);
+            PageScannerService task = new PageScannerService(pageDto, pageRepository);
+            //tasks.add(task);
             task.fork();
         }
         return new PageScannerResponse(PageScannerResponse.status.OK);
