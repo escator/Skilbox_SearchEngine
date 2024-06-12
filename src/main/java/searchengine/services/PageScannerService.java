@@ -5,6 +5,7 @@ import org.springframework.data.domain.Example;
 import searchengine.Application;
 import searchengine.dto.index.HtmlParseResponse;
 import searchengine.dto.index.PageDto;
+import searchengine.dto.index.PageScannerResponse;
 import searchengine.model.Page;
 import searchengine.model.Site;
 import searchengine.repository.LinkStorage;
@@ -15,9 +16,10 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.RecursiveAction;
+import java.util.concurrent.RecursiveTask;
 
 @Slf4j
-public class PageScannerService extends RecursiveAction {
+public class PageScannerService extends RecursiveTask<PageScannerResponse> {
 
     // адрес сканируемой страницы
     private String url;
@@ -28,6 +30,7 @@ public class PageScannerService extends RecursiveAction {
 
     // конструкторы
     public PageScannerService(PageDto pageDto)  {
+        // защищаемся от ссылки не соответствующей шаблону
         if (pageDto.getRootUrl().endsWith("/")) {
             this.rootUrl = pageDto.getUrl().substring(0, pageDto.getUrl().length() - 1);
         } else {
@@ -40,12 +43,16 @@ public class PageScannerService extends RecursiveAction {
 
     // end конструкторы
     @Override
-    protected void compute() {
+    protected PageScannerResponse compute() {
         if (RunIndexMonitor.isStopIndexing()) {
-            return;
+            return new PageScannerResponse(
+                    PageScannerResponse.status.STOPPED,
+                    "Индексирование остановлено пользователем");
         }
         if (LinkStorage.containsLink(url)) {
-            return;
+            return new PageScannerResponse(
+                    PageScannerResponse.status.DOUBLE_LINK,
+                    "Ссылка уже добавлена");
         }
         // Выдерживаем паузу в 200 - 300мс перед началом загрузки страницы
         // рандомность для снижения шанса блокировки
@@ -73,6 +80,7 @@ public class PageScannerService extends RecursiveAction {
             tasks.add(task);
             task.fork();
         }
+        return new PageScannerResponse(PageScannerResponse.status.OK);
     }
 
     private void savePageToRepository(String url, HtmlParseResponse htmlParseResponse)  {

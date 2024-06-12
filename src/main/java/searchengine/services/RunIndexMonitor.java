@@ -1,21 +1,29 @@
 package searchengine.services;
 
 import lombok.extern.slf4j.Slf4j;
-import searchengine.Application;
 
 import java.util.HashSet;
+
+/**
+ * <p>Функционал класса заключается в хранении управляющих флагов и мониторинге работы пулов потоков осуществляющих индексиоование сайта.
+ * При создании отдельного потока в ThreadIndexingManager
+ * он регистрируется в списке потоков, которые будут
+ * индексировать сайт, а после выполнения работы поток
+ * исключается из списка потоков.
+ * Синхронизированные методы regIndexer и unregIndexer реализуют функционал регистрации и отмены регистрации индексаторов.</p>
+ */
 @Slf4j
 public class RunIndexMonitor {
-    private static HashSet<ThreadIndexingStarter> indexers = new HashSet<ThreadIndexingStarter>();
+    private static HashSet<ThreadIndexingManager> indexers = new HashSet<ThreadIndexingManager>();
     private static boolean stopIndexing = false;
     private static boolean isIndexingRunning = false;
-    public static synchronized void regIndexer(ThreadIndexingStarter indexer){
+    public static synchronized void regIndexer(ThreadIndexingManager indexer){
         indexers.add(indexer);
         switchIndexMonitor();
         log.info("Registering indexer {}", indexer);
     }
 
-    public static synchronized void unregIndexer(ThreadIndexingStarter indexer){
+    public static synchronized void unregIndexer(ThreadIndexingManager indexer){
         indexers.remove(indexer);
         switchIndexMonitor();
         log.info("Unregistering indexer {}", indexer);

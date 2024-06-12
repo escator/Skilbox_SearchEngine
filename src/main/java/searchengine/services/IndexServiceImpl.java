@@ -4,7 +4,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Example;
 import org.springframework.stereotype.Service;
-import searchengine.Application;
 import searchengine.config.JsopConnectionCfg;
 import searchengine.config.SiteDto;
 import searchengine.config.SitesList;
@@ -12,14 +11,12 @@ import searchengine.dto.index.PageDto;
 import searchengine.dto.statistics.IndexingResponse;
 import searchengine.model.IndexingStatus;
 import searchengine.model.Site;
-import searchengine.repository.LinkStorage;
 import searchengine.repository.PageRepository;
 import searchengine.repository.SiteRepository;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.ForkJoinPool;
 
 @Slf4j
 @Service
@@ -68,7 +65,7 @@ public class IndexServiceImpl implements IndexService {
                 site,
                 pageRepository);
 
-        Thread thread = new Thread(new ThreadIndexingStarter(pageDto));
+        Thread thread = new Thread(new ThreadIndexingManager(pageDto));
         thread.start();
 
 //        ForkJoinPool forkJoinPool = new ForkJoinPool();
