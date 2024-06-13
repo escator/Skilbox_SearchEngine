@@ -18,5 +18,5 @@ public interface IndexService {
     Site findById(Integer id);
     void updateDate(Site site, LocalDateTime date);
     void updateStatus(Site site, IndexingStatus indexingStatus);
-
+    void updateLastError(Site site, String error);
 }

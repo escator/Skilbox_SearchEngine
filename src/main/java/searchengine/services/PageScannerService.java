@@ -44,9 +44,7 @@ public class PageScannerService extends RecursiveTask<PageScannerResponse> {
     @Override
     protected PageScannerResponse compute() {
         if (RunIndexMonitor.isStopIndexing()) {
-            return new PageScannerResponse(
-                    PageScannerResponse.status.STOPPED,
-                    "Индексирование остановлено пользователем");
+            return PageScannerResponse.getStopResponse();
         }
         if (LinkStorage.containsLink(url)) {
             return new PageScannerResponse(
@@ -80,7 +78,8 @@ public class PageScannerService extends RecursiveTask<PageScannerResponse> {
             //tasks.add(task);
             task.fork();
         }
-        return new PageScannerResponse(PageScannerResponse.status.OK);
+        return RunIndexMonitor.isStopIndexing() ? PageScannerResponse.getStopResponse()
+                : PageScannerResponse.getOKResponse();
     }
 
     private void savePageToRepository(String url, HtmlParseResponse htmlParseResponse)  {

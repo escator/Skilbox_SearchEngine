@@ -1,5 +1,6 @@
 package searchengine.services;
 
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Example;
@@ -22,6 +23,7 @@ import java.util.concurrent.Executors;
 @Slf4j
 @Service
 @RequiredArgsConstructor
+@Getter
 public class IndexServiceImpl implements IndexService {
 
     // get sites list
@@ -43,7 +45,7 @@ public class IndexServiceImpl implements IndexService {
     }
 
     @Override
-    public void indexingSite(SiteDto siteDto)  {
+    public void indexingSite(SiteDto siteDto) {
         if (!isValidSite(siteDto)) {
             log.info("Site is not valid");
             return;
@@ -52,7 +54,6 @@ public class IndexServiceImpl implements IndexService {
         if ((s = find(null, siteDto.getName(), siteDto.getUrl())) != null)  {
             delete(s);
         }
-
 
         Site site  = siteDtoToSiteModel(siteDto);
         site.setStatus(IndexingStatus.INDEXING);
@@ -64,9 +65,8 @@ public class IndexServiceImpl implements IndexService {
                 siteDto.getUrl(),
                 site);
 
-        Thread thread = new Thread(new ThreadIndexingManager(pageDto, pageRepository));
+        Thread thread = new Thread(new ThreadIndexingManager(pageDto, this));
         thread.start();
-
 
     }
 
@@ -121,6 +121,15 @@ public class IndexServiceImpl implements IndexService {
         Site existingSite = find(null, site.getName(), site.getUrl());
         if (existingSite != null)  {
             existingSite.setStatusTime(date);
+            siteRepository.save(existingSite);
+        }
+    }
+
+    @Override
+    public  void updateLastError(Site site, String error)   {
+        Site existingSite = find(null, site.getName(), site.getUrl());
+        if (existingSite != null)  {
+            existingSite.setLastError(error);
             siteRepository.save(existingSite);
         }
     }

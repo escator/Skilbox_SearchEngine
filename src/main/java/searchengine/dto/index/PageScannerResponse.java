@@ -18,4 +18,16 @@ public class PageScannerResponse {
 
     private status status;
     private String message;
+
+    public static PageScannerResponse getStopResponse() {
+        PageScannerResponse resp = new PageScannerResponse();
+        resp.setStatus(resp.status.STOPPED);
+        resp.setMessage("Индексирование остановлено пользователем");
+        return resp;
+    }
+    public static PageScannerResponse getOKResponse() {
+        PageScannerResponse resp = new PageScannerResponse();
+        resp.setStatus(resp.status.OK);
+        return resp;
+    }
 }
