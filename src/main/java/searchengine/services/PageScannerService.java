@@ -10,6 +10,7 @@ import searchengine.model.Page;
 import searchengine.model.Site;
 import searchengine.repository.LinkStorage;
 import searchengine.repository.PageRepository;
+import searchengine.util.LinkToolsBox;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -29,12 +30,7 @@ public class PageScannerService extends RecursiveTask<PageScannerResponse> {
 
     // конструкторы
     public PageScannerService(PageDto pageDto, PageRepository repository)  {
-        // защищаемся от ссылки не соответствующей шаблону
-        if (pageDto.getRootUrl().endsWith("/")) {
-            this.rootUrl = pageDto.getUrl().substring(0, pageDto.getUrl().length() - 1);
-        } else {
-            this.rootUrl  = pageDto.getRootUrl();
-        }
+        this.rootUrl = LinkToolsBox.normalizeRootUrl(pageDto.getRootUrl());
         this.url = pageDto.getUrl();
         this.site  = pageDto.getSite();
         this.pageRepository = repository;
@@ -66,8 +62,12 @@ public class PageScannerService extends RecursiveTask<PageScannerResponse> {
 
         // Получаем doc и статус
         HtmlParseResponse htmlParseResponse = htmlParseService.parse();
+        if (url.equals(rootUrl) && htmlParseResponse.getStatus() != 200)  {
+            return PageScannerResponse.getErrorResponse();
+        }
+
         //TODO принять решение по нужности данной проверки в БД.
-        if (!isVisitedLinks(getShortUrl(url))) {
+        if (!isVisitedLinks(LinkToolsBox.getShortUrl(url, rootUrl))) {
             savePageToRepository(url, htmlParseResponse);
         }
 
@@ -75,7 +75,6 @@ public class PageScannerService extends RecursiveTask<PageScannerResponse> {
         for (String link : linksOnPageList) {
             PageDto pageDto = new PageDto(link, rootUrl, site);
             PageScannerService task = new PageScannerService(pageDto, pageRepository);
-            //tasks.add(task);
             task.fork();
         }
         return RunIndexMonitor.isStopIndexing() ? PageScannerResponse.getStopResponse()
@@ -84,23 +83,13 @@ public class PageScannerService extends RecursiveTask<PageScannerResponse> {
 
     private void savePageToRepository(String url, HtmlParseResponse htmlParseResponse)  {
         Page page = new Page();
-        page.setPath(getShortUrl(url));
+        page.setPath(LinkToolsBox.getShortUrl(url, rootUrl));
         page.setCode(htmlParseResponse.getStatus());
         page.setSite(site);
         page.setContent(htmlParseResponse.getDocument().toString());
         synchronized (pageRepository) {
             pageRepository.save(page);
         }
-    }
-
-    private String getShortUrl(String url)   {
-        if (url.endsWith("/")) {
-            url.substring(0, url.length() - 1);
-        }
-        if (url == rootUrl) {
-            return "/";
-        }
-        return url.substring(rootUrl.length());
     }
 
     private boolean isVisitedLinks(String url) {

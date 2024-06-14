@@ -136,7 +136,7 @@ public class IndexServiceImpl implements IndexService {
 
     @Override
     public void updateStatus(Site site, IndexingStatus newIndexingStatus) {
-        log.info("Updating site STATUS" + site.getName());
+        log.info("Updating site STATUS {} on {}", site.getUrl(), site.getStatus());
         Optional<Site> optionalSite = siteRepository.findById(site.getId());
         if (optionalSite.isPresent()) {
             Site existingSite = optionalSite.get();
@@ -171,5 +171,11 @@ public class IndexServiceImpl implements IndexService {
         site.setName(siteCfg.getName());
         site.setUrl(siteCfg.getUrl());
         return site;
+    }
+
+    //TODO Удалить перед сдачей проекта
+    public void test() {
+        log.info("test");
+        log.info("{}", sitesList.getSites().toString());
     }
 }

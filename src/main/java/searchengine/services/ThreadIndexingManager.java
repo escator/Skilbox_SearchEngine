@@ -1,5 +1,6 @@
 package searchengine.services;
 
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import searchengine.dto.index.PageDto;
 import searchengine.dto.index.PageScannerResponse;
@@ -14,6 +15,7 @@ import java.util.concurrent.ForkJoinPool;
  */
 @Slf4j
 public class ThreadIndexingManager implements Runnable {
+    @Getter
     PageDto pageDto;
     IndexServiceImpl service;
     public ThreadIndexingManager(PageDto pageDto, IndexServiceImpl service){
@@ -38,7 +40,10 @@ public class ThreadIndexingManager implements Runnable {
 
         if (RunIndexMonitor.isStopIndexing()) {
             service.updateStatus(pageDto.getSite(), IndexingStatus.FAILED);
-            service.updateLastError(pageDto.getSite(), "Indexing was stopped");
+            service.updateLastError(pageDto.getSite(), "Индексация остановлена пользователем");
+        } else if (response.getStatus() == PageScannerResponse.status.ERROR) {
+            service.updateStatus(pageDto.getSite(), IndexingStatus.FAILED);
+            service.updateLastError(pageDto.getSite(), response.getMessage());
         } else  {
             service.updateStatus(pageDto.getSite(), IndexingStatus.INDEXED);
         }

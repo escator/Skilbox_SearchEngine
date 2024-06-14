@@ -20,13 +20,13 @@ public class RunIndexMonitor {
     public static synchronized void regIndexer(ThreadIndexingManager indexer){
         indexers.add(indexer);
         switchIndexMonitor();
-        log.info("Registering indexer {}", indexer);
+        log.info("Registering indexer {}", indexer.getPageDto().getUrl());
     }
 
     public static synchronized void unregIndexer(ThreadIndexingManager indexer){
         indexers.remove(indexer);
         switchIndexMonitor();
-        log.info("Unregistering indexer {}", indexer);
+        log.info("Unregistering indexer {}", indexer.getPageDto().getUrl());
     }
 
     private static void switchIndexMonitor(){

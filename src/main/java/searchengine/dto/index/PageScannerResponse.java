@@ -30,4 +30,11 @@ public class PageScannerResponse {
         resp.setStatus(resp.status.OK);
         return resp;
     }
+
+    public static PageScannerResponse getErrorResponse() {
+        PageScannerResponse resp = new PageScannerResponse();
+        resp.setStatus(resp.status.ERROR);
+        resp.setMessage("Ошибка при получении html данных страницы");
+        return resp;
+    }
 }

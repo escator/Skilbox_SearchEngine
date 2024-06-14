@@ -80,6 +80,12 @@ public class ApiController {
         indexService.delete(indexService.find(null, siteDto.getName(), siteDto.getUrl()));
         log.info("Controller: delete url:  " + siteDto.getUrl());
     }
+
+    @GetMapping("/list")
+    public void getList() {
+        log.info("Controller: list");
+        indexService.test();
+    }
 /////////END TEST METHODS //////////////
 
     // ОСНОВНОЕ API ////////////

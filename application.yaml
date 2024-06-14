@@ -19,13 +19,15 @@ jsop:
 
 indexing-settings:
   sites:
-    - url: https://sendel1.ru
+    - url: https://sendel.ru
       name: Konstantin Shibkov
 #    - url: https://www.lenta.ru
 #      name: Лента.ру
-    - url: https://www.skillbox.ru
-      name: Skillbox
+    - url: http://radiomv.ru/
+      name: radiomv.ru
 #    - url: https://www.playback.ru
 #      name: PlayBack.Ru
 #    - url: https://books.toscrape.com
 #      name: To Scrape
+#    - url: https://ipfran.ru/
+#      name: ipfran.ru
