@@ -21,8 +21,8 @@ public class LinkToolsBox {
     }
 
     /**
-     * Отфильтровывает якоря (#) и приводит ссылки и относительные и
-     * абсолютные к единому абсолютному виду.
+     * Отфильтровывает якоря (#) и внешние ссылки, приводит ссылки и
+     * относительные и абсолютные к единому абсолютному виду.
      * example: http://site.com/page
      * @param url отрабатываемая строка url ссылкию.
      * @param rootUrl корневой адрес    ex: http://site.com
@@ -50,6 +50,11 @@ public class LinkToolsBox {
         return result;
     }
 
+    /**
+     * Проперяет является ли адрес url, удаляет завершающий слеш если он есть
+     * @param url String Адрес url.
+     * @return String Адрес url без завершающего слеша.
+     */
     public static String normalizeRootUrl(String url)  {
         String res = null;
         if (isUrl(url)) {
@@ -62,6 +67,11 @@ public class LinkToolsBox {
         return res;
     }
 
+    /**
+     * Проперяет является ли адрес url
+     * @param url String
+     * @return boolean true - Адрес url.
+     */
     public static boolean isUrl(String url) {
         boolean result = true;
         if (!(url.startsWith("http://") ||
@@ -75,6 +85,13 @@ public class LinkToolsBox {
         return result;
     }
 
+    /**
+     * Проперяет является ли адрес url внутренней ссылкой
+     * @param url String Адрес url.
+     * @param rootUrl корневой адрес    ex: http://site.com
+     * @return boolean true  - Адрес url внутренней ссылкой.
+     *     false  - Адрес url не внутренней ссылкой или null.
+     */
     public static boolean isInternalUrl(String url, String rootUrl)  {
         boolean result = true;
         if (url == null || !url.startsWith(rootUrl))  {
@@ -83,7 +100,14 @@ public class LinkToolsBox {
         return result;
     }
 
+    /**
+     * Возвращает относительную ссылку из абсолютной
+     * @param url String Адрес url.
+     * @param rootUrl корневой адрес    ex: http://site.com
+     * @return String относительная ссылка. Если url null, возвращает null.
+     */
     public static String getShortUrl(String url, String rootUrl) {
+        if  (url  == null) return null;
         if (url.endsWith("/")) {
             url.substring(0, url.length() - 1);
         }
