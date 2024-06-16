@@ -44,8 +44,8 @@ public class HtmlParseService {
     }
 
     /**
-     * Парсит данных из html страницы по указанному url
-     * @return Document - данные из html страницы
+     * Парсит данные из html страницы по указанному url
+     * @return HtmlResponse - содержащий код ответа и Document
      */
     public HtmlParseResponse parse() {
         if  (isReady)  {

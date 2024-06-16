@@ -7,7 +7,7 @@ import javax.persistence.*;
 
 @Entity
 @Setter @Getter
-@Table(name = "page", indexes = @Index(name = "path_index", columnList  =  "path"))
+@Table(name = "page", indexes = @Index(name = "path_index", columnList  =  "path"), uniqueConstraints = {@UniqueConstraint(columnNames = {"path", "site_id"})} )
 public class Page {
 
     @Id

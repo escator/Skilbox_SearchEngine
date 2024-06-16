@@ -26,14 +26,15 @@ public class PageScannerService extends RecursiveTask<PageScannerResponse> {
     private final String url;
     private final String rootUrl;
     private final Site site;
-    private final PageRepository pageRepository;
+//    private final PageRepository pageRepository;
+    private final IndexServiceImpl indexService;
 
     // конструкторы
-    public PageScannerService(PageDto pageDto, PageRepository repository)  {
+    public PageScannerService(PageDto pageDto, IndexServiceImpl service)  {
         this.rootUrl = LinkToolsBox.normalizeRootUrl(pageDto.getRootUrl());
         this.url = pageDto.getUrl();
         this.site  = pageDto.getSite();
-        this.pageRepository = repository;
+        this.indexService = service;
     }
 
     // end конструкторы
@@ -67,14 +68,14 @@ public class PageScannerService extends RecursiveTask<PageScannerResponse> {
         }
 
         //TODO принять решение по нужности данной проверки в БД.
-        if (!isVisitedLinks(LinkToolsBox.getShortUrl(url, rootUrl))) {
+        if (!indexService.isVisitedLinks(LinkToolsBox.getShortUrl(url, rootUrl))) {
             savePageToRepository(url, htmlParseResponse);
         }
 
         // Создаем ветку рекурсии для каждой ссылки на странице
         for (String link : linksOnPageList) {
             PageDto pageDto = new PageDto(link, rootUrl, site);
-            PageScannerService task = new PageScannerService(pageDto, pageRepository);
+            PageScannerService task = new PageScannerService(pageDto, indexService);
             task.fork();
         }
         return RunIndexMonitor.isStopIndexing() ? PageScannerResponse.getStopResponse()
@@ -87,16 +88,7 @@ public class PageScannerService extends RecursiveTask<PageScannerResponse> {
         page.setCode(htmlParseResponse.getStatus());
         page.setSite(site);
         page.setContent(htmlParseResponse.getDocument().toString());
-        synchronized (pageRepository) {
-            pageRepository.save(page);
-        }
-    }
-
-    private boolean isVisitedLinks(String url) {
-        Page page = new Page();
-        page.setPath(url);
-        Example<Page> example  = Example.of(page);
-        return pageRepository.exists(example);
+        indexService.savePage(page);
     }
 
     private void pause(int min, int max)  {

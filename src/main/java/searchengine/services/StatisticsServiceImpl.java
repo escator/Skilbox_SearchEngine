@@ -2,12 +2,13 @@ package searchengine.services;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import searchengine.config.SiteDto;
+import searchengine.dto.index.SiteDto;
 import searchengine.config.SitesList;
 import searchengine.dto.statistics.DetailedStatisticsItem;
 import searchengine.dto.statistics.StatisticsData;
 import searchengine.dto.statistics.StatisticsResponse;
 import searchengine.dto.statistics.TotalStatistics;
+import searchengine.model.Site;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -19,6 +20,7 @@ public class StatisticsServiceImpl implements StatisticsService {
 
     private final Random random = new Random();
     private final SitesList sites;
+    private final IndexService indexService;
 
     @Override
     public StatisticsResponse getStatistics() {
@@ -40,14 +42,22 @@ public class StatisticsServiceImpl implements StatisticsService {
             DetailedStatisticsItem item = new DetailedStatisticsItem();
             item.setName(site.getName());
             item.setUrl(site.getUrl());
-            int pages = random.nextInt(1_000);
-            int lemmas = pages * random.nextInt(1_000);
+            // получаем количество проиндексированных страниц на сайте
+            int pages = indexService.getPagesCount(sitesList.get(i));
+
+            int lemmas = pages * random.nextInt(1_000); //TODO добавить счетчик леммы
             item.setPages(pages);
             item.setLemmas(lemmas);
-            item.setStatus(statuses[i % 3]);
-            item.setError(errors[i % 3]);
+
+            // TODO установить нулевые данные при первом запуске
+            Site siteEntity = indexService.find(null, sitesList.get(i).getName(), sitesList.get(i).getUrl());
+            item.setStatus(siteEntity.getStatus().name());
+            String error = siteEntity.getLastError();
+            item.setError((error == null) ? "null" : error);
             item.setStatusTime(System.currentTimeMillis() -
                     (random.nextInt(10_000)));
+
+
             total.setPages(total.getPages() + pages);
             total.setLemmas(total.getLemmas() + lemmas);
             detailed.add(item);
@@ -61,4 +71,6 @@ public class StatisticsServiceImpl implements StatisticsService {
         response.setResult(true);
         return response;
     }
+
+
 }

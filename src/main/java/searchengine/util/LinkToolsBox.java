@@ -30,6 +30,7 @@ public class LinkToolsBox {
      */
     public static String normalizeUrl(String url, String rootUrl) {
         String result = null;
+        url = url.strip();
         if (isUrl(url)) {
             if (url.endsWith("/") && url.length() > 1) {
                 url = url.substring(0, url.length() - 1);
@@ -57,6 +58,7 @@ public class LinkToolsBox {
      */
     public static String normalizeRootUrl(String url)  {
         String res = null;
+        url  = url.strip();
         if (isUrl(url)) {
             if (url.endsWith("/")) {
                 res = url.substring(0, url.length() - 1);
@@ -74,6 +76,7 @@ public class LinkToolsBox {
      */
     public static boolean isUrl(String url) {
         boolean result = true;
+        url  = url.strip();
         if (!(url.startsWith("http://") ||
                 url.startsWith("https://") ||
                 url.startsWith("/"))) {
@@ -108,6 +111,7 @@ public class LinkToolsBox {
      */
     public static String getShortUrl(String url, String rootUrl) {
         if  (url  == null) return null;
+        url   = url.strip();
         if (url.endsWith("/")) {
             url.substring(0, url.length() - 1);
         }
@@ -116,6 +120,26 @@ public class LinkToolsBox {
         }
         return url.substring(rootUrl.length());
     }
+    public static String getShortUrl(String url) {
+        String rootUrl= extractRootDomain(url);
+        return getShortUrl(url, rootUrl);
+    }
 
-
+    /**
+     * Извлекает из переданного url адреса корневой домен
+     * @param url String Адрес url. (абсолютная ссылка
+     * @return String корневой домен. Если url null, возвращает null.
+     */
+    public static String extractRootDomain(String url) {
+        if (url  == null) return null;
+        int start = url.indexOf("://",  0);
+        int end = 0;
+        if (start > 0) {
+            end = url.indexOf('/', start + 3);
+        } else {
+            end  = url.indexOf('/',  0);
+        }
+        if (end < 0) end = url.length();
+        return url.substring(0, end);
+    }
 }

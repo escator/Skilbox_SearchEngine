@@ -25,7 +25,7 @@ public class ThreadIndexingManager implements Runnable {
     @Override
     public void run() {
         ForkJoinPool forkJoinPool = new ForkJoinPool();
-        PageScannerResponse response = forkJoinPool.invoke(new PageScannerService(pageDto, service.getPageRepository()));
+        PageScannerResponse response = forkJoinPool.invoke(new PageScannerService(pageDto, service));
         RunIndexMonitor.regIndexer(this);
 
         // Ожидаем когда отработают весь пул

@@ -9,7 +9,7 @@ spring:
     url: jdbc:mysql://localhost:3306/search_engine?useSSL=false&requireSSL=false&allowPublicKeyRetrieval=true
   jpa:
     show_sql: true
-    hibernate.ddl-auto: create
+    hibernate.ddl-auto: update
   jackson:
     default-property-inclusion: non_null
 

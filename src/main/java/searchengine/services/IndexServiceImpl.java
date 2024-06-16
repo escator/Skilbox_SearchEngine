@@ -6,19 +6,21 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Example;
 import org.springframework.stereotype.Service;
 import searchengine.config.JsopConnectionCfg;
-import searchengine.config.SiteDto;
+import searchengine.dto.index.HtmlParseResponse;
+import searchengine.dto.index.SiteDto;
 import searchengine.config.SitesList;
 import searchengine.dto.index.PageDto;
 import searchengine.dto.statistics.IndexingResponse;
 import searchengine.model.IndexingStatus;
+import searchengine.model.Page;
 import searchengine.model.Site;
 import searchengine.repository.PageRepository;
 import searchengine.repository.SiteRepository;
+import searchengine.util.LinkToolsBox;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.Executors;
 
 @Slf4j
 @Service
@@ -52,13 +54,13 @@ public class IndexServiceImpl implements IndexService {
         }
         Site s;
         if ((s = find(null, siteDto.getName(), siteDto.getUrl())) != null)  {
-            delete(s);
+            deleteSite(s);
         }
 
         Site site  = siteDtoToSiteModel(siteDto);
         site.setStatus(IndexingStatus.INDEXING);
         site.setStatusTime(LocalDateTime.now());
-        site = save(site);
+        site = saveSite(site);
 
         PageDto pageDto = new PageDto(
                 siteDto.getUrl(),
@@ -67,17 +69,56 @@ public class IndexServiceImpl implements IndexService {
 
         Thread thread = new Thread(new ThreadIndexingManager(pageDto, this));
         thread.start();
-
     }
 
-    public Site save(Site site)  {
+    public boolean isVisitedLinks(String url) {
+        Page page = new Page();
+        page.setPath(LinkToolsBox.getShortUrl(url));
+        page.setSite(find(null, null, url));
+        Example<Page> example  = Example.of(page);
+        return pageRepository.exists(example);
+    }
+
+    public IndexingResponse indexingPage(SiteDto siteDto) {
+        String url = siteDto.getUrl().strip();
+        if (!isValidSite(siteDto)) {
+            return new IndexingResponse(false, "Данная страница находится за пределами сайтов,указанных в конфигурационном файле");
+        }
+
+        // Если посещали данную страницу, то удаляем её из БД
+        if (isVisitedLinks(url))   {
+            Page page  = new Page();
+            page.setPath(LinkToolsBox.getShortUrl(url, LinkToolsBox.extractRootDomain(url)));
+            page.setSite(find(null, null, LinkToolsBox.extractRootDomain(url)));
+            Example<Page> example = Example.of(page);
+            Optional<Page> pageOptional = pageRepository.findOne(example);
+            if (pageOptional.isPresent())    {
+                deletePage(pageOptional.get());
+            }
+        }
+        HtmlParseService htmlParseService   = new HtmlParseService(url, LinkToolsBox.extractRootDomain(url));
+        HtmlParseResponse htmlParseResponse  = htmlParseService.parse();
+        if (htmlParseResponse.getStatus() == 200) {
+            Page page = new Page();
+            page.setPath(LinkToolsBox.getShortUrl(url, LinkToolsBox.extractRootDomain(url)));
+            page.setCode(htmlParseResponse.getStatus());
+            page.setSite(find(null, null, LinkToolsBox.extractRootDomain(url)));
+            page.setContent(htmlParseResponse.getDocument().toString());
+            savePage(page);
+        }
+
+
+
+        return new IndexingResponse(true, null);
+    }
+
+    public Site saveSite(Site site)  {
         return siteRepository.save(site);
     }
     @Override
-    public void delete(Site site) {
+    public void deleteSite(Site site) {
         siteRepository.delete(site);
     }
-
     @Override
     public List<Site> findAll() {
         return siteRepository.findAll();
@@ -89,6 +130,12 @@ public class IndexServiceImpl implements IndexService {
         siteRepository.deleteAll();
         pageRepository.deleteAll();
     }
+
+    public void deletePage(Page page)  {
+        pageRepository.delete(page);
+    }
+    public synchronized void savePage(Page page)   {pageRepository.save(page);}
+
 
     /**
      * Поиск в БД таблица sites. Если указано id, то поиск будет произведен по id
@@ -135,6 +182,19 @@ public class IndexServiceImpl implements IndexService {
     }
 
     @Override
+    public int getPagesCount(SiteDto siteDto)  {
+        if (siteDto  == null) {
+            return (int) pageRepository.count();
+        }
+        Site site = find(null, siteDto.getName(), siteDto.getUrl());
+        Page page = new Page();
+        page.setSite(site);
+        Example<Page> example  = Example.of(page);
+        Long count  = pageRepository.count(example);
+        return count.intValue();
+    }
+
+    @Override
     public void updateStatus(Site site, IndexingStatus newIndexingStatus) {
         log.info("Updating site STATUS {} on {}", site.getUrl(), site.getStatus());
         Optional<Site> optionalSite = siteRepository.findById(site.getId());
@@ -152,7 +212,7 @@ public class IndexServiceImpl implements IndexService {
      * @return
      */
     public boolean isValidSite(SiteDto siteDto)   {
-        String url  = siteDto.getUrl();
+        String url  = siteDto.getUrl().strip();
         boolean res = false;
         if (url == null || url.isEmpty()) {
             res = false;
@@ -176,6 +236,7 @@ public class IndexServiceImpl implements IndexService {
     //TODO Удалить перед сдачей проекта
     public void test() {
         log.info("test");
-        log.info("{}", sitesList.getSites().toString());
+        List<SiteDto> siteList  = sitesList.getSites();
+        log.info("{}, {}",siteList.get(0).getUrl(), getPagesCount(siteList.get(0)));
     }
 }

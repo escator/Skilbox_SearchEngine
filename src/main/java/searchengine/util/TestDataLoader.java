@@ -2,7 +2,7 @@ package searchengine.util;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
-import searchengine.config.SiteDto;
+import searchengine.dto.index.SiteDto;
 import searchengine.config.SitesList;
 import searchengine.model.IndexingStatus;
 import searchengine.model.Page;

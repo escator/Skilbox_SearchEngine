@@ -5,8 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import searchengine.Application;
-import searchengine.config.SiteDto;
+import searchengine.dto.index.SiteDto;
 import searchengine.dto.statistics.IndexingResponse;
 import searchengine.dto.statistics.StatisticsResponse;
 import searchengine.model.Site;
@@ -45,7 +44,7 @@ public class ApiController {
         log.info("delete test data");
         List<Site> list = indexService.findAll();
         log.info("delete " + list.get(0).toString());
-        indexService.delete(list.get(0));
+        indexService.deleteSite(list.get(0));
         return null;
     }
 
@@ -77,13 +76,13 @@ public class ApiController {
 
     @PostMapping("/delete")
     public void delete(@RequestBody SiteDto siteDto) {
-        indexService.delete(indexService.find(null, siteDto.getName(), siteDto.getUrl()));
+        indexService.deleteSite(indexService.find(null, siteDto.getName(), siteDto.getUrl()));
         log.info("Controller: delete url:  " + siteDto.getUrl());
     }
 
-    @GetMapping("/list")
+    @GetMapping("/test")
     public void getList() {
-        log.info("Controller: list");
+        log.info("Controller: test");
         indexService.test();
     }
 /////////END TEST METHODS //////////////
@@ -127,13 +126,14 @@ public class ApiController {
     }
 
     @PostMapping("/indexPage")
-    public ResponseEntity<IndexingResponse> indexPage() {
+    public ResponseEntity<IndexingResponse> indexPage(SiteDto siteDto)  {
         //TODO implement
         // Метод добавляет в индекс или обновляет отдельную страницу, адрес
         // которой передан в параметре. Возвращает статус индекса.
         // Если адрес страницы передан неверно, метод должен вернуть
         // соответствующую ошибку.
-
-        return null;
+        log.info("Controller: index page {}", siteDto.getUrl());
+        IndexingResponse response = indexService.indexingPage(siteDto);
+        return new ResponseEntity<IndexingResponse>(response, HttpStatus.OK);
     }
 }
