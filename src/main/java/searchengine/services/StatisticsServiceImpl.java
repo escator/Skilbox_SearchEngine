@@ -50,7 +50,7 @@ public class StatisticsServiceImpl implements StatisticsService {
             item.setLemmas(lemmas);
 
             // TODO установить нулевые данные при первом запуске
-            Site siteEntity = indexService.find(null, sitesList.get(i).getName(), sitesList.get(i).getUrl());
+            Site siteEntity = indexService.findSite(null, sitesList.get(i).getName(), sitesList.get(i).getUrl());
             item.setStatus(siteEntity.getStatus().name());
             String error = siteEntity.getLastError();
             item.setError((error == null) ? "null" : error);

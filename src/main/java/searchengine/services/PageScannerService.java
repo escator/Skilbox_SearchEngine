@@ -27,10 +27,10 @@ public class PageScannerService extends RecursiveTask<PageScannerResponse> {
     private final String rootUrl;
     private final Site site;
 //    private final PageRepository pageRepository;
-    private final IndexServiceImpl indexService;
+    private final IndexService indexService;
 
     // конструкторы
-    public PageScannerService(PageDto pageDto, IndexServiceImpl service)  {
+    public PageScannerService(PageDto pageDto, IndexService service)  {
         this.rootUrl = LinkToolsBox.normalizeRootUrl(pageDto.getRootUrl());
         this.url = pageDto.getUrl();
         this.site  = pageDto.getSite();

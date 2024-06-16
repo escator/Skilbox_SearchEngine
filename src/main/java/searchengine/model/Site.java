@@ -27,7 +27,7 @@ public class Site {
     @Column(columnDefinition = "TEXT", name = "last_error")
     private String lastError;
 
-    @Column(columnDefinition = "VARCHAR(255)", name = "url")
+    @Column(columnDefinition = "VARCHAR(255)", name = "url", unique = true)
     private String url;
 
     @Column(columnDefinition = "VARCHAR(255)", name = "name")

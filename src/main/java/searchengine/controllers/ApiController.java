@@ -70,13 +70,13 @@ public class ApiController {
 
     @PostMapping("/find")
     public void find(@RequestBody SiteDto siteDto) {
-        Site res = indexService.find(null, siteDto.getName(), siteDto.getUrl());
+        Site res = indexService.findSite(null, siteDto.getName(), siteDto.getUrl());
         log.info("Controller: find url:  " + siteDto.getUrl() + " is " + res.toString());
     }
 
     @PostMapping("/delete")
     public void delete(@RequestBody SiteDto siteDto) {
-        indexService.deleteSite(indexService.find(null, siteDto.getName(), siteDto.getUrl()));
+        indexService.deleteSite(indexService.findSite(null, siteDto.getName(), siteDto.getUrl()));
         log.info("Controller: delete url:  " + siteDto.getUrl());
     }
 

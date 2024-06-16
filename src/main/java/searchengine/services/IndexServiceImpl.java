@@ -36,7 +36,7 @@ public class IndexServiceImpl implements IndexService {
 
     @Override
     public IndexingResponse indexingAll() {
-        log.info("Starting indexing");
+        log.info("Starting indexing all sites");
         RunIndexMonitor.setIndexingRunning(true);
         List<SiteDto> siteList = sitesList.getSites();
         for (SiteDto siteDto : siteList) {
@@ -53,7 +53,7 @@ public class IndexServiceImpl implements IndexService {
             return;
         }
         Site s;
-        if ((s = find(null, siteDto.getName(), siteDto.getUrl())) != null)  {
+        if ((s = findSite(null, siteDto.getName(), siteDto.getUrl())) != null)  {
             deleteSite(s);
         }
 
@@ -71,17 +71,20 @@ public class IndexServiceImpl implements IndexService {
         thread.start();
     }
 
+    @Override
     public boolean isVisitedLinks(String url) {
         Page page = new Page();
         page.setPath(LinkToolsBox.getShortUrl(url));
-        page.setSite(find(null, null, url));
+        page.setSite(findSite(null, null, url));
         Example<Page> example  = Example.of(page);
         return pageRepository.exists(example);
     }
 
+    @Override
     public IndexingResponse indexingPage(SiteDto siteDto) {
         String url = siteDto.getUrl().strip();
         if (!isValidSite(siteDto)) {
+            log.info("Site {} is not valid", siteDto.getUrl());
             return new IndexingResponse(false, "Данная страница находится за пределами сайтов,указанных в конфигурационном файле");
         }
 
@@ -89,7 +92,7 @@ public class IndexServiceImpl implements IndexService {
         if (isVisitedLinks(url))   {
             Page page  = new Page();
             page.setPath(LinkToolsBox.getShortUrl(url, LinkToolsBox.extractRootDomain(url)));
-            page.setSite(find(null, null, LinkToolsBox.extractRootDomain(url)));
+            page.setSite(findSite(null, null, LinkToolsBox.extractRootDomain(url)));
             Example<Page> example = Example.of(page);
             Optional<Page> pageOptional = pageRepository.findOne(example);
             if (pageOptional.isPresent())    {
@@ -102,7 +105,7 @@ public class IndexServiceImpl implements IndexService {
             Page page = new Page();
             page.setPath(LinkToolsBox.getShortUrl(url, LinkToolsBox.extractRootDomain(url)));
             page.setCode(htmlParseResponse.getStatus());
-            page.setSite(find(null, null, LinkToolsBox.extractRootDomain(url)));
+            page.setSite(findSite(null, null, LinkToolsBox.extractRootDomain(url)));
             page.setContent(htmlParseResponse.getDocument().toString());
             savePage(page);
         }
@@ -112,6 +115,7 @@ public class IndexServiceImpl implements IndexService {
         return new IndexingResponse(true, null);
     }
 
+    @Override
     public Site saveSite(Site site)  {
         return siteRepository.save(site);
     }
@@ -125,15 +129,10 @@ public class IndexServiceImpl implements IndexService {
     }
 
     @Override
-    public void deleteAll() {
-        log.info("Deleting all sites and all pages");
-        siteRepository.deleteAll();
-        pageRepository.deleteAll();
-    }
-
     public void deletePage(Page page)  {
         pageRepository.delete(page);
     }
+    @Override
     public synchronized void savePage(Page page)   {pageRepository.save(page);}
 
 
@@ -147,9 +146,9 @@ public class IndexServiceImpl implements IndexService {
      * @return  Site сущность или null
      */
     @Override
-    public Site find(Integer id, String name, String url) {
+    public Site findSite(Integer id, String name, String url) {
         if (id != null)  {
-            return findById(id);
+            return findSiteById(id);
         }
         Site site = new Site();
         site.setName(name);
@@ -159,13 +158,13 @@ public class IndexServiceImpl implements IndexService {
     }
 
     @Override
-    public Site findById(Integer id)  {
+    public Site findSiteById(Integer id)  {
         return siteRepository.findById(id).orElse(null);
     }
 
     @Override
     public void updateDate(Site site, LocalDateTime date) {
-        Site existingSite = find(null, site.getName(), site.getUrl());
+        Site existingSite = findSite(null, site.getName(), site.getUrl());
         if (existingSite != null)  {
             existingSite.setStatusTime(date);
             siteRepository.save(existingSite);
@@ -174,7 +173,7 @@ public class IndexServiceImpl implements IndexService {
 
     @Override
     public  void updateLastError(Site site, String error)   {
-        Site existingSite = find(null, site.getName(), site.getUrl());
+        Site existingSite = findSite(null, site.getName(), site.getUrl());
         if (existingSite != null)  {
             existingSite.setLastError(error);
             siteRepository.save(existingSite);
@@ -186,7 +185,7 @@ public class IndexServiceImpl implements IndexService {
         if (siteDto  == null) {
             return (int) pageRepository.count();
         }
-        Site site = find(null, siteDto.getName(), siteDto.getUrl());
+        Site site = findSite(null, siteDto.getName(), siteDto.getUrl());
         Page page = new Page();
         page.setSite(site);
         Example<Page> example  = Example.of(page);
