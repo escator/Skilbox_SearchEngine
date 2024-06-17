@@ -9,9 +9,7 @@ import searchengine.dto.index.SiteDto;
 import searchengine.dto.statistics.IndexingResponse;
 import searchengine.dto.statistics.StatisticsResponse;
 import searchengine.model.Site;
-import searchengine.services.IndexServiceImpl;
-import searchengine.services.RunIndexMonitor;
-import searchengine.services.StatisticsService;
+import searchengine.services.*;
 import searchengine.util.TestDataLoader;
 
 import java.util.List;
@@ -24,15 +22,13 @@ public class ApiController {
     private final StatisticsService statisticsService;
 
     //TODO расссмотреть имплементацию по интерфейсу
-    private final IndexServiceImpl indexService;
+    private final IndexService indexService;
+    private final MorphologyServiceImpl morphologyService;
 
-    //TODO удалить метод после тестирования
-    @Autowired
-    private TestDataLoader testDataLoader;
-
-    public ApiController(StatisticsService statisticsService, IndexServiceImpl indexService) {
+    public ApiController(StatisticsService statisticsService, IndexService indexService, MorphologyServiceImpl morphologyService) {
         this.statisticsService = statisticsService;
         this.indexService = indexService;
+        this.morphologyService  = morphologyService;
     }
 
 ////////////////TEST METHODS /////////////////////
@@ -48,24 +44,10 @@ public class ApiController {
         return null;
     }
 
-    @GetMapping("/setTestData")
-    public ResponseEntity<IndexingResponse> setTestData() {
-        //TODO удалить метод после тестирования
-        log.info("Controller: set test data");
-        testDataLoader.loadTestSites();
-        return null;
-    }
-
     @GetMapping("/getLinks")
     public void getLinks(@RequestParam String url) {
         log.info("Controller: get links: " + url);
         indexService.indexingSite(new SiteDto(url, "Test site"));
-    }
-
-    @PostMapping("/validateUrl")
-    public void validateUrl(@RequestBody SiteDto site) {
-        boolean res = indexService.isValidSite(site);
-        log.info("Controller: validate url: " + site.getUrl() + " is " + res);
     }
 
     @PostMapping("/find")
@@ -83,7 +65,7 @@ public class ApiController {
     @GetMapping("/test")
     public void getList() {
         log.info("Controller: test");
-        indexService.test();
+        morphologyService.test();
     }
 /////////END TEST METHODS //////////////
 
