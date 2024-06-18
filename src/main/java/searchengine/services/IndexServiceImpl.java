@@ -14,6 +14,7 @@ import searchengine.dto.statistics.IndexingResponse;
 import searchengine.model.IndexingStatus;
 import searchengine.model.Page;
 import searchengine.model.Site;
+import searchengine.repository.LemmaRepository;
 import searchengine.repository.PageRepository;
 import searchengine.repository.SiteRepository;
 import searchengine.util.LinkToolsBox;
@@ -32,6 +33,8 @@ public class IndexServiceImpl implements IndexService {
     private final SitesList sitesList;
     private final SiteRepository siteRepository;
     private final PageRepository pageRepository;
+    private final LemmaRepository lemmaRepository;
+    //TODO привести  интерфейс MorphologyService
     private final JsopConnectionCfg jsopConnectionCfg;
 
     @Override
@@ -110,8 +113,6 @@ public class IndexServiceImpl implements IndexService {
             savePage(page);
         }
 
-
-
         return new IndexingResponse(true, null);
     }
 
@@ -134,6 +135,14 @@ public class IndexServiceImpl implements IndexService {
     }
     @Override
     public synchronized void savePage(Page page)   {pageRepository.save(page);}
+    @Override
+    public List<Page> findPagesBySite(SiteDto siteDto)   {
+        Site site = findSite(null, siteDto.getName(), siteDto.getUrl());
+        Page page = new Page();
+        page.setSite(site);
+        Example<Page> example = Example.of(page);
+        return pageRepository.findAll(example);
+    }
 
 
     /**

@@ -26,7 +26,6 @@ public class PageScannerService extends RecursiveTask<PageScannerResponse> {
     private final String url;
     private final String rootUrl;
     private final Site site;
-//    private final PageRepository pageRepository;
     private final IndexService indexService;
 
     // конструкторы
@@ -63,9 +62,12 @@ public class PageScannerService extends RecursiveTask<PageScannerResponse> {
 
         // Получаем doc и статус
         HtmlParseResponse htmlParseResponse = htmlParseService.parse();
+        // Если не удалось получить главную страницу сайта. Возвращаем ошибку
         if (url.equals(rootUrl) && htmlParseResponse.getStatus() != 200)  {
             return PageScannerResponse.getErrorResponse();
         }
+
+        //TODO вставить обработку лемм сюда
 
         //TODO принять решение по нужности данной проверки в БД.
         if (!indexService.isVisitedLinks(LinkToolsBox.getShortUrl(url, rootUrl))) {

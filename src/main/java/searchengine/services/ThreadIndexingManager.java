@@ -7,6 +7,7 @@ import searchengine.dto.index.PageScannerResponse;
 import searchengine.model.IndexingStatus;
 import searchengine.repository.LinkStorage;
 
+import java.io.IOException;
 import java.util.concurrent.ForkJoinPool;
 
 /**
@@ -45,6 +46,13 @@ public class ThreadIndexingManager implements Runnable {
             service.updateStatus(pageDto.getSite(), IndexingStatus.FAILED);
             service.updateLastError(pageDto.getSite(), response.getMessage());
         } else  {
+            // Обрабатываем леммы
+            try {
+                MorphologyService morphologyService = new MorphologyServiceImpl(service);
+                morphologyService.process(service, pageDto.getSite());
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
             service.updateStatus(pageDto.getSite(), IndexingStatus.INDEXED);
         }
         RunIndexMonitor.unregIndexer(this);

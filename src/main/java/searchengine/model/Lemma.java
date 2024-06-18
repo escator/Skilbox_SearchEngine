@@ -4,7 +4,6 @@ import lombok.Getter;
 import lombok.Setter;
 
 import javax.persistence.*;
-import java.util.List;
 import java.util.Set;
 
 @Entity
@@ -17,10 +16,21 @@ public class Lemma {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @OneToMany
-    private Set<Site> site;
+    @ManyToOne
+    @JoinColumn(name="site_id")
+    private Site site;
 
+    @Column(name="lemma")
     private String lemma;
 
+    @Column(name="frequency")
     private Integer frequency;
+
+    public void incrementFrequency() {
+        if (this.frequency == null) {
+            this.frequency = 1;
+        } else {
+            this.frequency += 1;
+        }
+    }
 }

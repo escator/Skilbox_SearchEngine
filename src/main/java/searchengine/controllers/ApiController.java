@@ -21,14 +21,11 @@ public class ApiController {
 
     private final StatisticsService statisticsService;
 
-    //TODO расссмотреть имплементацию по интерфейсу
     private final IndexService indexService;
-    private final MorphologyServiceImpl morphologyService;
 
-    public ApiController(StatisticsService statisticsService, IndexService indexService, MorphologyServiceImpl morphologyService) {
+    public ApiController(StatisticsService statisticsService, IndexService indexService) {
         this.statisticsService = statisticsService;
         this.indexService = indexService;
-        this.morphologyService  = morphologyService;
     }
 
 ////////////////TEST METHODS /////////////////////
@@ -65,7 +62,7 @@ public class ApiController {
     @GetMapping("/test")
     public void getList() {
         log.info("Controller: test");
-        morphologyService.test();
+        //morphologyService.test();
     }
 /////////END TEST METHODS //////////////
 
@@ -77,11 +74,6 @@ public class ApiController {
 
     @GetMapping("/startIndexing")
     public ResponseEntity<IndexingResponse> startIndexing() {
-        //TODO implement
-        // Метод запускает полную индексацию всех сайтов или полную
-        // переиндексацию, если они уже проиндексированы.
-        // Если в настоящий момент индексация или переиндексация уже
-        // запущена, метод возвращает соответствующее сообщение об ошибке.
         log.info("Controller: start indexing");
         if (RunIndexMonitor.isIndexingRunning()) {
             return new ResponseEntity<IndexingResponse>(
@@ -109,11 +101,6 @@ public class ApiController {
 
     @PostMapping("/indexPage")
     public ResponseEntity<IndexingResponse> indexPage(SiteDto siteDto)  {
-        //TODO implement
-        // Метод добавляет в индекс или обновляет отдельную страницу, адрес
-        // которой передан в параметре. Возвращает статус индекса.
-        // Если адрес страницы передан неверно, метод должен вернуть
-        // соответствующую ошибку.
         log.info("Controller: index page {}", siteDto.getUrl());
         IndexingResponse response = indexService.indexingPage(siteDto);
         return new ResponseEntity<IndexingResponse>(response, HttpStatus.OK);
