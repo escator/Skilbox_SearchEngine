@@ -9,9 +9,11 @@ import org.jsoup.safety.Safelist;
 import org.springframework.data.domain.Example;
 import org.springframework.stereotype.Service;
 import searchengine.dto.index.SiteDto;
+import searchengine.model.IndexEntity;
 import searchengine.model.Lemma;
 import searchengine.model.Page;
 import searchengine.model.Site;
+import searchengine.repository.IndexEntityRepository;
 import searchengine.repository.LemmaRepository;
 import searchengine.repository.PageRepository;
 
@@ -26,6 +28,7 @@ import java.util.Optional;
 public class MorphologyServiceImpl implements MorphologyService {
     private final LuceneMorphology luceneMorphology;
     private final LemmaRepository lemmaRepository;
+    private final IndexEntityRepository indexEntityRepository;
     private final IndexService indexService;
     private static final String WORD_TYPE_REGEX = "\\W\\w&&[^а-яА-Я\\s]";
     private static final String[] particlesNames = new String[]{"МЕЖД", "ПРЕДЛ", "СОЮЗ"};
@@ -34,6 +37,7 @@ public class MorphologyServiceImpl implements MorphologyService {
     public MorphologyServiceImpl(IndexService indexService) throws IOException {
         this.luceneMorphology = new RussianLuceneMorphology();
         this.lemmaRepository = indexService.getLemmaRepository();
+        this.indexEntityRepository  = indexService.getIndexEntityRepository();
         this.indexService = indexService;
     }
 
@@ -43,24 +47,36 @@ public class MorphologyServiceImpl implements MorphologyService {
         List<Page> pages = indexService.findPagesBySite(new SiteDto(site.getUrl(), site.getName()));
 
         for  (Page page: pages)  {
+            if (page.getCode() != 200)
+                continue;
             String text = page.getContent();
             HashMap<String, Integer> lemmas  = getLemmas(stripHtml(text));
-            lemmas.forEach((key, value) -> {saveLemmasToDB(key);});
+            lemmas.forEach((key, value) -> {saveLemmasToDB(key, value, page);});
         }
     }
 
-    private void saveLemmasToDB(String lemma) {
-        Optional<Lemma> lemmaOptional  = lemmaRepository.findOne(Example.of(getLemmaFromStr(lemma)));
+    private void saveLemmasToDB(String lemma, int amount, Page page) {
+        Optional<Lemma> lemmaOptional  =
+                lemmaRepository.findOne(Example.of(getLemmaFromStr(lemma)));
+        Lemma savedLemma = new Lemma();;
         if (lemmaOptional.isEmpty()) {
-            Lemma newLemma = new Lemma();
-            newLemma.setLemma(lemma);
-            newLemma.setFrequency(1);
-            newLemma.setSite(site);
-            lemmaRepository.save(newLemma);
+            savedLemma.setLemma(lemma);
+            savedLemma.setFrequency(1);
+            savedLemma.setSite(site);
         } else {
             lemmaOptional.get().incrementFrequency();
-            lemmaRepository.save(lemmaOptional.get());
-            log.info("Lemma not found: {}", lemma);
+            savedLemma = lemmaOptional.get();
+        }
+        synchronized (lemmaRepository) {
+            savedLemma = lemmaRepository.save(savedLemma);
+        }
+        IndexEntity indexEntity = new IndexEntity();
+        indexEntity.setLemma(savedLemma);
+        indexEntity.setPage(page);
+        indexEntity.setRank((float)amount);
+
+        synchronized (indexEntityRepository) {
+            indexEntityRepository.save(indexEntity);
         }
     }
 
@@ -115,6 +131,9 @@ public class MorphologyServiceImpl implements MorphologyService {
         return words.stream().anyMatch(this::hasParticleProperty);
     }
     private boolean hasParticleProperty(String wordBase) {
+        if (wordBase.length()  <  3)  {
+            return true;
+        }
         for (String property : particlesNames) {
             if (wordBase.toUpperCase().contains(property)) {
                 return true;

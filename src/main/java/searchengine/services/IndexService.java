@@ -5,6 +5,7 @@ import searchengine.dto.statistics.IndexingResponse;
 import searchengine.model.IndexingStatus;
 import searchengine.model.Page;
 import searchengine.model.Site;
+import searchengine.repository.IndexEntityRepository;
 import searchengine.repository.LemmaRepository;
 
 import java.time.LocalDateTime;
@@ -28,4 +29,5 @@ public interface IndexService {
     boolean isVisitedLinks(String url);
     public List<Page> findPagesBySite(SiteDto siteDto);
     LemmaRepository getLemmaRepository();
+    IndexEntityRepository getIndexEntityRepository();
 }

@@ -11,9 +11,11 @@ import searchengine.dto.index.SiteDto;
 import searchengine.config.SitesList;
 import searchengine.dto.index.PageDto;
 import searchengine.dto.statistics.IndexingResponse;
+import searchengine.model.IndexEntity;
 import searchengine.model.IndexingStatus;
 import searchengine.model.Page;
 import searchengine.model.Site;
+import searchengine.repository.IndexEntityRepository;
 import searchengine.repository.LemmaRepository;
 import searchengine.repository.PageRepository;
 import searchengine.repository.SiteRepository;
@@ -34,6 +36,7 @@ public class IndexServiceImpl implements IndexService {
     private final SiteRepository siteRepository;
     private final PageRepository pageRepository;
     private final LemmaRepository lemmaRepository;
+    private final IndexEntityRepository indexEntityRepository;
     //TODO привести  интерфейс MorphologyService
     private final JsopConnectionCfg jsopConnectionCfg;
 

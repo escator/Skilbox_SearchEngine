@@ -14,15 +14,15 @@ public class IndexEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @OneToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name="page_id", referencedColumnName = "id")
+    @ManyToOne
+    @JoinColumn(name="page_id")
     private Page page;
 
-    @OneToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name="lemma_id", referencedColumnName =  "id")
+    @ManyToOne
+    @JoinColumn(name="lemma_id")
     private Lemma lemma;
 
     @Column(name="rating", nullable=false)
-    private Float rating;
+    private Float rank;
 
 }
