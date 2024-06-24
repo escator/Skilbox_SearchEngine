@@ -18,7 +18,7 @@ public class Site {
     private Integer id;
 
     @Enumerated(EnumType.STRING)
-    @Column(columnDefinition = "ENUM('INDEXING', 'INDEXED', 'FAILED')",  name = "status")
+    @Column(columnDefinition = "ENUM('INDEXING', 'INDEXED', 'FAILED', 'RANDOM_PAGE')",  name = "status")
     private IndexingStatus status;
 
     @Column(columnDefinition = "DATETIME", name = "status_time")

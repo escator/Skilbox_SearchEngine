@@ -18,9 +18,8 @@ import searchengine.repository.LemmaRepository;
 import searchengine.repository.PageRepository;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
 
 
 @Slf4j
@@ -40,11 +39,24 @@ public class MorphologyServiceImpl implements MorphologyService {
         this.indexEntityRepository  = indexService.getIndexEntityRepository();
         this.indexService = indexService;
     }
-
     @Override
-    public void process(IndexService indexService, Site site) {
+    public void processOnePage(IndexService indexService, Page page) {
+        this.site  = page.getSite();
+        List<Page> pages = new ArrayList<>();
+        pages.add(page);
+        process(indexService, pages);
+    }
+    @Override
+    public void processSite(IndexService indexService, Site site) {
         this.site = site;
         List<Page> pages = indexService.findPagesBySite(new SiteDto(site.getUrl(), site.getName()));
+        process(indexService, pages);
+    }
+
+
+    private void process(IndexService indexService, List<Page> pages) {
+//        this.site = site;
+//        List<Page> pages = indexService.findPagesBySite(new SiteDto(site.getUrl(), site.getName()));
 
         for  (Page page: pages)  {
             if (page.getCode() != 200)
@@ -94,7 +106,7 @@ public class MorphologyServiceImpl implements MorphologyService {
         HashMap<String, Integer> lemmas = new HashMap<>();
 
         for (String word : words) {
-            if (word.isEmpty()) {
+            if (word.isEmpty() || word.length() < 3) {
                 continue;
             }
             // Проверяем является ли слово служебной частью речи, если да отбрасываем
@@ -131,9 +143,6 @@ public class MorphologyServiceImpl implements MorphologyService {
         return words.stream().anyMatch(this::hasParticleProperty);
     }
     private boolean hasParticleProperty(String wordBase) {
-        if (wordBase.length()  <  3)  {
-            return true;
-        }
         for (String property : particlesNames) {
             if (wordBase.toUpperCase().contains(property)) {
                 return true;

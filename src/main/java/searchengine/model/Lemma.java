@@ -33,4 +33,12 @@ public class Lemma {
             this.frequency += 1;
         }
     }
+
+    public void decrementFrequency()  {
+        if (this.frequency == null) {
+            this.frequency = 0;
+        } else {
+            this.frequency -= 1;
+        }
+    }
 }

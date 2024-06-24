@@ -24,7 +24,7 @@ public interface IndexService {
     void updateStatus(Site site, IndexingStatus indexingStatus);
     void updateLastError(Site site, String error);
     int getPagesCount(SiteDto siteDto);
-    void savePage(Page page);
+    Page savePage(Page page);
     void deletePage(Page page);
     boolean isVisitedLinks(String url);
     public List<Page> findPagesBySite(SiteDto siteDto);
