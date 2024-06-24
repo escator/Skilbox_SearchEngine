@@ -30,4 +30,5 @@ public interface IndexService {
     public List<Page> findPagesBySite(SiteDto siteDto);
     LemmaRepository getLemmaRepository();
     IndexEntityRepository getIndexEntityRepository();
+    Integer lemmaCount();
 }

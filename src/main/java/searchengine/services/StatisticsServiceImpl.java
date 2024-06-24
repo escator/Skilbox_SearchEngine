@@ -45,7 +45,7 @@ public class StatisticsServiceImpl implements StatisticsService {
             // получаем количество проиндексированных страниц на сайте
             int pages = indexService.getPagesCount(sitesList.get(i));
 
-            int lemmas = pages * random.nextInt(1_000); //TODO добавить счетчик леммы
+            int lemmas = indexService.lemmaCount();
             item.setPages(pages);
             item.setLemmas(lemmas);
 

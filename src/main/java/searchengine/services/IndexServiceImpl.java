@@ -274,7 +274,12 @@ public class IndexServiceImpl implements IndexService {
         indexEntityRepository.deleteAll(indexEntities);
     }
 
-    // UTILITE
+    @Override
+    public Integer lemmaCount() {
+        return (int)lemmaRepository.count();
+    }
+
+    // UTILITY
     public static searchengine.model.Site siteDtoToSiteModel(SiteDto siteCfg) {
         searchengine.model.Site site = new searchengine.model.Site();
         site.setName(siteCfg.getName());
