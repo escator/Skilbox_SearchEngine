@@ -102,7 +102,7 @@ public class MorphologyServiceImpl implements MorphologyService {
 
     @Override
     public HashMap<String, Integer> getLemmas(String text) {
-        String[] words = getWords(text);
+        List<String> words = getWords(text);
         HashMap<String, Integer> lemmas = new HashMap<>();
 
         for (String word : words) {
@@ -133,13 +133,17 @@ public class MorphologyServiceImpl implements MorphologyService {
         return lemmas;
     }
 
-    private String[] getWords(String text) {
-        return text.toLowerCase()
-                .replaceAll("([^а-я\s])", " ")
-                .strip()
-                .split("\\s+");
+    @Override
+    public List<String> getWords(String text) {
+        return Arrays.stream(text.toLowerCase()
+               .replaceAll("([^а-я\s])", " ")
+               .strip()
+               .split("\\s+"))
+               .filter(word -> word.length() > 3)
+               .toList();
     }
-    private boolean isNotWord(List<String> words) {
+    @Override
+    public boolean isNotWord(List<String> words) {
         return words.stream().anyMatch(this::hasParticleProperty);
     }
     private boolean hasParticleProperty(String wordBase) {

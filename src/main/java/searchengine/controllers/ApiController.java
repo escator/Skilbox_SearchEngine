@@ -9,6 +9,7 @@ import searchengine.dto.index.SiteDto;
 import searchengine.dto.statistics.IndexingResponse;
 import searchengine.dto.statistics.StatisticsResponse;
 import searchengine.model.Site;
+import searchengine.response.SearchResponse;
 import searchengine.services.*;
 import searchengine.util.TestDataLoader;
 
@@ -22,10 +23,14 @@ public class ApiController {
     private final StatisticsService statisticsService;
 
     private final IndexService indexService;
+    private final SearchService searchService;
 
-    public ApiController(StatisticsService statisticsService, IndexService indexService) {
+    public ApiController(StatisticsService statisticsService,
+                         IndexService indexService,
+                         SearchService searchService) {
         this.statisticsService = statisticsService;
         this.indexService = indexService;
+        this.searchService  = searchService;
     }
 
 ////////////////TEST METHODS /////////////////////
@@ -104,5 +109,14 @@ public class ApiController {
         log.info("Controller: index page {}", siteDto.getUrl());
         IndexingResponse response = indexService.indexingPage(siteDto);
         return new ResponseEntity<IndexingResponse>(response, HttpStatus.OK);
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<SearchResponse> search(
+            @RequestParam String query,
+            @RequestParam(required = false) Integer offset,
+            @RequestParam(required  = false) Integer limit) {
+        SearchResponse response = searchService.search(query, offset, limit);
+        return null;
     }
 }
