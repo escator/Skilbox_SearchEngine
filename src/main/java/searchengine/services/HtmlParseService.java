@@ -8,7 +8,7 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.springframework.http.HttpStatus;
-import searchengine.dto.index.HtmlParseResponse;
+import searchengine.response.HtmlParseResponse;
 import searchengine.util.LinkToolsBox;
 
 import java.io.IOException;

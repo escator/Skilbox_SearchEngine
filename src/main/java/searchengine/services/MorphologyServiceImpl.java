@@ -2,12 +2,13 @@ package searchengine.services;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import net.bytebuddy.description.annotation.AnnotationValue;
 import org.apache.lucene.morphology.LuceneMorphology;
 import org.apache.lucene.morphology.russian.RussianLuceneMorphology;
 import org.jsoup.Jsoup;
 import org.jsoup.safety.Safelist;
 import org.springframework.data.domain.Example;
-import org.springframework.stereotype.Service;
+import org.springframework.data.domain.Sort;
 import searchengine.dto.index.SiteDto;
 import searchengine.model.IndexEntity;
 import searchengine.model.Lemma;
@@ -15,11 +16,9 @@ import searchengine.model.Page;
 import searchengine.model.Site;
 import searchengine.repository.IndexEntityRepository;
 import searchengine.repository.LemmaRepository;
-import searchengine.repository.PageRepository;
 
 import java.io.IOException;
 import java.util.*;
-import java.util.stream.Collectors;
 
 
 @Slf4j
@@ -68,13 +67,17 @@ public class MorphologyServiceImpl implements MorphologyService {
     }
 
     private void saveLemmasToDB(String lemma, int amount, Page page) {
+        Lemma lemmaEntity = new Lemma();
+        lemmaEntity.setLemma(lemma);
+        lemmaEntity.setSite(page.getSite());
         Optional<Lemma> lemmaOptional  =
-                lemmaRepository.findOne(Example.of(getLemmaFromStr(lemma)));
+                lemmaRepository.findOne(Example.of(lemmaEntity));
+
         Lemma savedLemma = new Lemma();;
         if (lemmaOptional.isEmpty()) {
             savedLemma.setLemma(lemma);
             savedLemma.setFrequency(1);
-            savedLemma.setSite(site);
+            savedLemma.setSite(page.getSite());
         } else {
             lemmaOptional.get().incrementFrequency();
             savedLemma = lemmaOptional.get();
@@ -82,6 +85,7 @@ public class MorphologyServiceImpl implements MorphologyService {
         synchronized (lemmaRepository) {
             savedLemma = lemmaRepository.save(savedLemma);
         }
+
         IndexEntity indexEntity = new IndexEntity();
         indexEntity.setLemma(savedLemma);
         indexEntity.setPage(page);
@@ -92,7 +96,7 @@ public class MorphologyServiceImpl implements MorphologyService {
         }
     }
 
-    private  Lemma getLemmaFromStr(String lemmaStr)  {
+    private  Lemma strToLemma(String lemmaStr)  {
         Lemma lemmaEntity = new Lemma();
         lemmaEntity.setLemma(lemmaStr);
         return lemmaEntity;
@@ -139,7 +143,7 @@ public class MorphologyServiceImpl implements MorphologyService {
                .replaceAll("([^а-я\s])", " ")
                .strip()
                .split("\\s+"))
-               .filter(word -> word.length() > 3)
+               .filter(word -> word.length() > 2)
                .toList();
     }
     @Override
@@ -153,6 +157,13 @@ public class MorphologyServiceImpl implements MorphologyService {
             }
         }
         return false;
+    }
+
+    @Override
+    public List<Lemma> findLemmaByName(String word) {
+        List<Lemma> lemmasList  = lemmaRepository.findAll(Example.of(strToLemma(word)), Sort.by(Sort.Direction.DESC, "frequency"));
+
+        return lemmasList;
     }
 
     private String stripHtml(String html)  {

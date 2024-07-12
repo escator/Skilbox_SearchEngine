@@ -1,4 +1,4 @@
-package searchengine.dto.index;
+package searchengine.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

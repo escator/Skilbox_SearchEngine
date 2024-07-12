@@ -1,22 +1,17 @@
 package searchengine.services;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Example;
-import searchengine.Application;
-import searchengine.dto.index.HtmlParseResponse;
+import searchengine.response.HtmlParseResponse;
 import searchengine.dto.index.PageDto;
-import searchengine.dto.index.PageScannerResponse;
+import searchengine.response.PageScannerResponse;
 import searchengine.model.Page;
 import searchengine.model.Site;
 import searchengine.repository.LinkStorage;
-import searchengine.repository.PageRepository;
 import searchengine.util.LinkToolsBox;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.RecursiveAction;
 import java.util.concurrent.RecursiveTask;
 
 @Slf4j

@@ -6,7 +6,7 @@ import searchengine.dto.index.SiteDto;
 import searchengine.config.SitesList;
 import searchengine.dto.statistics.DetailedStatisticsItem;
 import searchengine.dto.statistics.StatisticsData;
-import searchengine.dto.statistics.StatisticsResponse;
+import searchengine.response.StatisticsResponse;
 import searchengine.dto.statistics.TotalStatistics;
 import searchengine.model.Site;
 
@@ -45,7 +45,7 @@ public class StatisticsServiceImpl implements StatisticsService {
             // получаем количество проиндексированных страниц на сайте
             int pages = indexService.getPagesCount(sitesList.get(i));
 
-            int lemmas = indexService.lemmaCount();
+            int lemmas = indexService.lemmaCount(null);
             item.setPages(pages);
             item.setLemmas(lemmas);
 

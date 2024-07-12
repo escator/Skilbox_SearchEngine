@@ -1,7 +1,9 @@
 package searchengine.services;
 
+import org.springframework.data.domain.Example;
 import searchengine.dto.index.SiteDto;
-import searchengine.dto.statistics.IndexingResponse;
+import searchengine.model.Lemma;
+import searchengine.response.IndexingResponse;
 import searchengine.model.IndexingStatus;
 import searchengine.model.Page;
 import searchengine.model.Site;
@@ -30,5 +32,5 @@ public interface IndexService {
     public List<Page> findPagesBySite(SiteDto siteDto);
     LemmaRepository getLemmaRepository();
     IndexEntityRepository getIndexEntityRepository();
-    Integer lemmaCount();
+    Integer lemmaCount(Example<Lemma> example);
 }

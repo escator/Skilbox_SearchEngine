@@ -6,17 +6,18 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Example;
 import org.springframework.stereotype.Service;
 import searchengine.config.JsopConnectionCfg;
-import searchengine.dto.index.HtmlParseResponse;
+import searchengine.response.HtmlParseResponse;
 import searchengine.dto.index.SiteDto;
 import searchengine.config.SitesList;
 import searchengine.dto.index.PageDto;
-import searchengine.dto.statistics.IndexingResponse;
+import searchengine.response.IndexingResponse;
 import searchengine.model.*;
 import searchengine.repository.IndexEntityRepository;
 import searchengine.repository.LemmaRepository;
 import searchengine.repository.PageRepository;
 import searchengine.repository.SiteRepository;
 import searchengine.util.LinkToolsBox;
+import searchengine.util.SiteToolsBox;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
@@ -62,7 +63,7 @@ public class IndexServiceImpl implements IndexService {
             deleteSite(s);
         }
 
-        Site site = siteDtoToSiteModel(siteDto);
+        Site site = SiteToolsBox.siteDtoToSiteModel(siteDto);
         site.setStatus(IndexingStatus.INDEXING);
         site.setStatusTime(LocalDateTime.now());
         site = saveSite(site);
@@ -143,7 +144,7 @@ public class IndexServiceImpl implements IndexService {
 
     @Override
     public void deleteSite(Site site) {
-        List<Page> pages  = findPagesBySite(siteModelToSiteDto(site));
+        List<Page> pages  = findPagesBySite(SiteToolsBox.siteModelToSiteDto(site));
         pages.forEach(this::deleteLemmaByPage);
         siteRepository.delete(site);
     }
@@ -275,31 +276,14 @@ public class IndexServiceImpl implements IndexService {
     }
 
     @Override
-    public Integer lemmaCount() {
-        return (int)lemmaRepository.count();
-    }
-
-    // UTILITY
-    public static searchengine.model.Site siteDtoToSiteModel(SiteDto siteCfg) {
-        searchengine.model.Site site = new searchengine.model.Site();
-        site.setName(siteCfg.getName());
-        site.setUrl(siteCfg.getUrl());
-        return site;
-    }
-
-    private SiteDto siteModelToSiteDto(searchengine.model.Site site)  {
-        SiteDto siteDto = new SiteDto();
-        siteDto.setName(site.getName());
-        siteDto.setUrl(site.getUrl());
-        return siteDto;
-    }
-
-    public static PageDto pageModelToPageDto(Page page) {
-        PageDto pageDto = new PageDto();
-        pageDto.setRootUrl(page.getSite().getUrl());
-        pageDto.setSite(page.getSite());
-        pageDto.setUrl(page.getSite().getUrl() + page.getPath());
-        return pageDto;
+    public Integer lemmaCount(Example<Lemma> example) {
+        int res = 0;
+        if (example  == null) {
+            res = (int)lemmaRepository.count();
+        } else {
+            res = (int)lemmaRepository.count(example);
+        }
+        return res;
     }
 
     /**

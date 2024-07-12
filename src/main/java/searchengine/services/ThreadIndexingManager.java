@@ -3,7 +3,7 @@ package searchengine.services;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import searchengine.dto.index.PageDto;
-import searchengine.dto.index.PageScannerResponse;
+import searchengine.response.PageScannerResponse;
 import searchengine.model.IndexingStatus;
 import searchengine.repository.LinkStorage;
 

@@ -1,17 +1,15 @@
 package searchengine.controllers;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import searchengine.dto.index.SiteDto;
-import searchengine.dto.statistics.IndexingResponse;
-import searchengine.dto.statistics.StatisticsResponse;
+import searchengine.response.IndexingResponse;
+import searchengine.response.StatisticsResponse;
 import searchengine.model.Site;
 import searchengine.response.SearchResponse;
 import searchengine.services.*;
-import searchengine.util.TestDataLoader;
 
 import java.util.List;
 
@@ -115,8 +113,9 @@ public class ApiController {
     public ResponseEntity<SearchResponse> search(
             @RequestParam String query,
             @RequestParam(required = false) Integer offset,
-            @RequestParam(required  = false) Integer limit) {
-        SearchResponse response = searchService.search(query, offset, limit);
+            @RequestParam(required  = false) Integer limit,
+            @RequestParam(required = false) String site) {
+        SearchResponse response = searchService.search(query, offset, limit, site);
         return null;
     }
 }
