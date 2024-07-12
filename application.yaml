@@ -19,12 +19,12 @@ jsop:
 
 indexing-settings:
   sites:
-#    - url: https://sendel.ru
-#      name: Konstantin Shibkov
+    - url: https://sendel.ru
+      name: Konstantin Shibkov
 #    - url: https://www.lenta.ru
 #      name: Лента.ру
-    - url: https://devaka.info/
-      name: Поисковый маркетинг, который работает
+    - url: https://academynsk.ru/
+      name: Салон красоты
 #    - url: https://www.playback.ru
 #      name: PlayBack.Ru
 #    - url: https://motovar.ru/
