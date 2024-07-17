@@ -19,21 +19,20 @@ import java.util.stream.Collectors;
 public class SearchServiceImpl implements SearchService {
     private final IndexService indexService;
     private final SiteService siteService;
-    private final PageService pageService;
+    //private final PageService pageService;
     private final MorphologyService morphologyService;
     private final LemmaRepository lemmaRepository;
     private final IndexEntityRepository indexEntityRepository;
 
     public SearchServiceImpl(IndexService indexService,
                              SiteService siteService,
-                             PageService pageService,
                              LemmaRepository lemmaRepository) throws Exception {
         this.indexService  = indexService;
         this.morphologyService = new MorphologyServiceImpl(indexService);
         this.lemmaRepository = lemmaRepository;
         this.indexEntityRepository  = indexService.getIndexEntityRepository();
         this.siteService = siteService;
-        this.pageService = pageService;
+        //this.pageService = pageService;
 
     }
 
@@ -42,16 +41,10 @@ public class SearchServiceImpl implements SearchService {
         log.info("Searching for {}", query);
         // получаем map лемм из
         HashMap<String, Integer> lemmasSearchQueryMap = morphologyService.getLemmasFromText(query);
-        // удаляем те леммы, которые не встречаются слишком часто
+        // удаляем те леммы, которые встречаются слишком часто
         lemmasSearchQueryMap = removeFerquenterLemmas(lemmasSearchQueryMap, 65.0, siteUrl);
-
-        Map<String, Integer> sortMap = lemmasSearchQueryMap.entrySet().stream()
-                .sorted(Map.Entry.<String, Integer>comparingByValue()).collect(Collectors.toMap(
-                        Map.Entry::getKey,
-                        Map.Entry::getValue,
-                        (a, b) -> a,
-                        LinkedHashMap::new
-                ));
+        // сортируем леммы по частоте от мин до макс
+        Map<String, Integer> sortMap = sortLemmasMap(lemmasSearchQueryMap);
 
 
         for (String lemma : sortMap.keySet()) {
@@ -59,6 +52,16 @@ public class SearchServiceImpl implements SearchService {
         }
 
         return new SearchResponse();
+    }
+
+    private Map<String, Integer> sortLemmasMap(Map<String, Integer> lemmasMap) {
+        return lemmasMap.entrySet().stream()
+                .sorted(Map.Entry.<String, Integer>comparingByValue()).collect(Collectors.toMap(
+                        Map.Entry::getKey,
+                        Map.Entry::getValue,
+                        (a, b) -> a,
+                        LinkedHashMap::new
+                ));
     }
 
     private List<Page> getAllPageFoundLemmas(HashMap<String, Integer> lemmasMap, String siteUrl) {
@@ -78,7 +81,7 @@ public class SearchServiceImpl implements SearchService {
 
         Site site = siteService.findSite(null, null, siteUrl);
         SiteDto siteDto = SiteToolsBox.siteModelToSiteDto(site);
-        int allPageCount = pageService.getPagesCount(siteDto);
+        int allPageCount = siteService.getPagesCount(siteDto);
         for (String lemma : lemmasMap.keySet()) {
             int countLemmas = countPageFoundLemmas(lemma, site);
             if (((double)countLemmas / allPageCount * 100) > limitPercent) {

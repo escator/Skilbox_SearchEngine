@@ -85,7 +85,7 @@ public class PageScannerService extends RecursiveTask<PageScannerResponse> {
         page.setCode(htmlParseResponse.getStatus());
         page.setSite(site);
         page.setContent(htmlParseResponse.getDocument().toString());
-        indexService.getPageService().savePage(page);
+        indexService.getSiteService().savePage(page);
     }
 
     private void pause(int min, int max)  {

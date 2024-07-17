@@ -32,7 +32,6 @@ public class IndexServiceImpl implements IndexService {
 
     // get sites list
     private final SitesList sitesList;
-    private final PageService pageService;
     private final SiteService siteService;
     private final SiteRepository siteRepository;
     private final PageRepository pageRepository;
@@ -96,7 +95,7 @@ public class IndexServiceImpl implements IndexService {
 
         // Если посещали данную страницу, то удаляем её из БД
         if (isVisitedLinks(url)) {
-            pageService.deletePageByUrl(url);
+            siteService.deletePageByUrl(url);
         }
 
         HtmlParseService htmlParseService = new HtmlParseService(url, LinkToolsBox.extractRootDomain(url));
@@ -121,7 +120,7 @@ public class IndexServiceImpl implements IndexService {
                 page.setSite(siteService.saveSite(site));
             }
             page.setContent(htmlParseResponse.getDocument().toString());
-            page = pageService.savePage(page);
+            page = siteService.savePage(page);
 
             lemmatizePage(page);
         }
@@ -169,22 +168,7 @@ public class IndexServiceImpl implements IndexService {
         }
     }
 
-
-    // TABLE Lemma service
-
-
-    @Override
-    public Integer lemmaCount(Example<Lemma> example) {
-        int res = 0;
-        if (example == null) {
-            res = (int) lemmaRepository.count();
-        } else {
-            res = (int) lemmaRepository.count(example);
-        }
-        return res;
-    }
-
-    /**
+      /**
      * Проверяем присутствует ли в списке сайтов для индексации данный домен
      *
      * @param siteDto

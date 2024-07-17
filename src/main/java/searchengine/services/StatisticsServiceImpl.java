@@ -22,7 +22,6 @@ public class StatisticsServiceImpl implements StatisticsService {
     private final SitesList sites;
     private final IndexService indexService;
     private final SiteService siteService;
-    private final PageService pageService;
 
     @Override
     public StatisticsResponse getStatistics() {
@@ -45,9 +44,9 @@ public class StatisticsServiceImpl implements StatisticsService {
             item.setName(site.getName());
             item.setUrl(site.getUrl());
             // получаем количество проиндексированных страниц на сайте
-            int pages = pageService.getPagesCount(sitesList.get(i));
+            int pages = siteService.getPagesCount(sitesList.get(i));
 
-            int lemmas = indexService.lemmaCount(null);
+            int lemmas = siteService.сountLemmasOnSite(null);
             item.setPages(pages);
             item.setLemmas(lemmas);
 

@@ -22,19 +22,16 @@ public class ApiController {
 
     private final IndexService indexService;
     private final SiteService siteService;
-    private final PageService pageService;
     private final SearchService searchService;
 
     public ApiController(StatisticsService statisticsService,
                          IndexService indexService,
                          SearchService searchService,
-                         SiteService siteService,
-                         PageService pageService) {
+                         SiteService siteService) {
         this.statisticsService = statisticsService;
         this.indexService = indexService;
         this.searchService  = searchService;
         this.siteService = siteService;
-        this.pageService = pageService;
     }
 
 ////////////////TEST METHODS /////////////////////
