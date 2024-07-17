@@ -19,8 +19,10 @@ public interface SiteService {
      * @return Site сущность или null
      */
     Site findSite(Integer id, String name, String url);
+
     Site findSiteById(Integer id);
     Site saveSite(Site site);
+    void deleteAllSite();
     void deleteSite(Site site);
     List<Site> findAllSites();
     public List<Page> findPagesBySite(SiteDto siteDto);

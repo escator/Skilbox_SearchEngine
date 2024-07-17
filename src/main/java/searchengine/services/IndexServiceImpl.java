@@ -22,7 +22,6 @@ import searchengine.util.SiteToolsBox;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 
 @Slf4j
 @Service
@@ -41,9 +40,9 @@ public class IndexServiceImpl implements IndexService {
     private final JsopConnectionCfg jsopConnectionCfg;
 
     @Override
-    public IndexingResponse indexingAll() {
+    public IndexingResponse indexingAllSites() {
         log.info("Starting indexing all sites");
-        clearDB();
+        siteService.deleteAllSite();
         RunIndexMonitor.setIndexingRunning(true);
         List<SiteDto> siteList = sitesList.getSites();
         for (SiteDto siteDto : siteList) {
@@ -76,13 +75,6 @@ public class IndexServiceImpl implements IndexService {
 
         Thread thread = new Thread(new ThreadIndexingManager(pageDto, this));
         thread.start();
-    }
-
-    private void clearDB() {
-        indexEntityRepository.deleteAll();
-        lemmaRepository.deleteAll();
-        pageRepository.deleteAll();
-        siteRepository.deleteAll();
     }
 
     @Override
@@ -143,7 +135,7 @@ public class IndexServiceImpl implements IndexService {
         Site existingSite = siteService.findSite(null, site.getName(), site.getUrl());
         if (existingSite != null) {
             existingSite.setStatusTime(date);
-            siteRepository.save(existingSite);
+            siteService.saveSite(existingSite);
         }
     }
 
@@ -152,19 +144,18 @@ public class IndexServiceImpl implements IndexService {
         Site existingSite = siteService.findSite(null, site.getName(), site.getUrl());
         if (existingSite != null) {
             existingSite.setLastError(error);
-            siteRepository.save(existingSite);
+            siteService.saveSite(existingSite);
         }
     }
 
     @Override
     public void updateStatus(Site site, IndexingStatus newIndexingStatus) {
         log.info("Updating site STATUS {} on {}", site.getUrl(), site.getStatus());
-        Optional<Site> optionalSite = siteRepository.findById(site.getId());
-        if (optionalSite.isPresent()) {
-            Site existingSite = optionalSite.get();
+        Site existingSite = siteService.findSiteById(site.getId());
+        if (existingSite != null) {
             existingSite.setStatus(newIndexingStatus);
             existingSite.setStatusTime(LocalDateTime.now());
-            siteRepository.save(existingSite);
+            siteService.saveSite(existingSite);
         }
     }
 

@@ -1,6 +1,7 @@
 package searchengine.model;
 
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import javax.persistence.*;
@@ -10,7 +11,16 @@ import java.util.Set;
 @Table(name="lemma")
 @Getter
 @Setter
+@NoArgsConstructor
 public class Lemma {
+
+    public Lemma(String lemma) {
+        this.lemma = lemma;
+    }
+    public Lemma(String lemma, Site site) {
+        this.lemma = lemma;
+        this.site = site;
+    }
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

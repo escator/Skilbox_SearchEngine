@@ -86,7 +86,7 @@ public class ApiController {
                     new IndexingResponse(false, "Индексация уже запущена"),
                     HttpStatus.FORBIDDEN);
         }
-        IndexingResponse res = indexService.indexingAll();
+        IndexingResponse res = indexService.indexingAllSites();
 
         return new ResponseEntity<>(res, HttpStatus.OK);
     }

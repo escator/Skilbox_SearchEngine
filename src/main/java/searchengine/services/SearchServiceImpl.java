@@ -1,6 +1,7 @@
 package searchengine.services;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Example;
 import org.springframework.stereotype.Service;
 import searchengine.dto.index.SiteDto;
 import searchengine.model.Lemma;
@@ -9,6 +10,7 @@ import searchengine.model.Site;
 import searchengine.repository.IndexEntityRepository;
 import searchengine.repository.LemmaRepository;
 import searchengine.response.SearchResponse;
+import searchengine.util.LinkToolsBox;
 import searchengine.util.SiteToolsBox;
 
 import java.util.*;
@@ -46,13 +48,24 @@ public class SearchServiceImpl implements SearchService {
         // сортируем леммы по частоте от мин до макс
         Map<String, Integer> sortMap = sortLemmasMap(lemmasSearchQueryMap);
 
-
         for (String lemma : sortMap.keySet()) {
             log.info("Lemma {} is {}", lemma, lemmasSearchQueryMap.get(lemma));
+            List<Lemma> lemmas = findLemmaByName(lemma, siteService.findSite(null, null, siteUrl));
+            for (Lemma lemm : lemmas) {
+                log.info("Lemma - {}, site: {}", lemm.getLemma(), lemm.getSite().getUrl());
+            }
         }
 
         return new SearchResponse();
     }
+
+    private List<Lemma> findLemmaByName(String lemmaStr, Site site) {
+        Lemma exLemma = new Lemma(lemmaStr, site);
+        return lemmaRepository.findAll(Example.of(exLemma));
+
+    }
+
+
 
     private Map<String, Integer> sortLemmasMap(Map<String, Integer> lemmasMap) {
         return lemmasMap.entrySet().stream()

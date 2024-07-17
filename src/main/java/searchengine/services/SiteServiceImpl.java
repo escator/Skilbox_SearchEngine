@@ -29,6 +29,7 @@ public class SiteServiceImpl implements SiteService {
     private final LemmaRepository lemmaRepository;
     //private final PageService pageService;
 
+
     @Override
     public Site findSite(Integer id, String name, String url) {
         Site res = null;
@@ -139,4 +140,11 @@ public class SiteServiceImpl implements SiteService {
         return res;
     }
 
+    @Override
+    public void deleteAllSite() {
+        indexEntityRepository.deleteAll();
+        lemmaRepository.deleteAll();
+        pageRepository.deleteAll();
+        siteRepository.deleteAll();
+    }
 }
