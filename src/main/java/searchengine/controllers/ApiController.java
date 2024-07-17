@@ -21,14 +21,20 @@ public class ApiController {
     private final StatisticsService statisticsService;
 
     private final IndexService indexService;
+    private final SiteService siteService;
+    private final PageService pageService;
     private final SearchService searchService;
 
     public ApiController(StatisticsService statisticsService,
                          IndexService indexService,
-                         SearchService searchService) {
+                         SearchService searchService,
+                         SiteService siteService,
+                         PageService pageService) {
         this.statisticsService = statisticsService;
         this.indexService = indexService;
         this.searchService  = searchService;
+        this.siteService = siteService;
+        this.pageService = pageService;
     }
 
 ////////////////TEST METHODS /////////////////////
@@ -38,9 +44,9 @@ public class ApiController {
     public ResponseEntity<IndexingResponse> delete() {
         //TODO удалить метод после тестирования
         log.info("delete test data");
-        List<Site> list = indexService.findAll();
+        List<Site> list = siteService.findAllSites();
         log.info("delete " + list.get(0).toString());
-        indexService.deleteSite(list.get(0));
+        siteService.deleteSite(list.get(0));
         return null;
     }
 
@@ -52,13 +58,13 @@ public class ApiController {
 
     @PostMapping("/find")
     public void find(@RequestBody SiteDto siteDto) {
-        Site res = indexService.findSite(null, siteDto.getName(), siteDto.getUrl());
+        Site res = siteService.findSite(null, siteDto.getName(), siteDto.getUrl());
         log.info("Controller: find url:  " + siteDto.getUrl() + " is " + res.toString());
     }
 
     @PostMapping("/delete")
     public void delete(@RequestBody SiteDto siteDto) {
-        indexService.deleteSite(indexService.findSite(null, siteDto.getName(), siteDto.getUrl()));
+        siteService.deleteSite(siteService.findSite(null, siteDto.getName(), siteDto.getUrl()));
         log.info("Controller: delete url:  " + siteDto.getUrl());
     }
 

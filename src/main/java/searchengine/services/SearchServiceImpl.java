@@ -18,16 +18,22 @@ import java.util.stream.Collectors;
 @Slf4j
 public class SearchServiceImpl implements SearchService {
     private final IndexService indexService;
+    private final SiteService siteService;
+    private final PageService pageService;
     private final MorphologyService morphologyService;
     private final LemmaRepository lemmaRepository;
     private final IndexEntityRepository indexEntityRepository;
 
     public SearchServiceImpl(IndexService indexService,
+                             SiteService siteService,
+                             PageService pageService,
                              LemmaRepository lemmaRepository) throws Exception {
         this.indexService  = indexService;
         this.morphologyService = new MorphologyServiceImpl(indexService);
         this.lemmaRepository = lemmaRepository;
         this.indexEntityRepository  = indexService.getIndexEntityRepository();
+        this.siteService = siteService;
+        this.pageService = pageService;
 
     }
 
@@ -70,9 +76,9 @@ public class SearchServiceImpl implements SearchService {
     private HashMap<String, Integer> removeFerquenterLemmas(
             HashMap<String, Integer> lemmasMap, double limitPercent, String siteUrl) {
 
-        Site site = indexService.findSite(null, null, siteUrl);
+        Site site = siteService.findSite(null, null, siteUrl);
         SiteDto siteDto = SiteToolsBox.siteModelToSiteDto(site);
-        int allPageCount = indexService.getPagesCount(siteDto);
+        int allPageCount = pageService.getPagesCount(siteDto);
         for (String lemma : lemmasMap.keySet()) {
             int countLemmas = countPageFoundLemmas(lemma, site);
             if (((double)countLemmas / allPageCount * 100) > limitPercent) {

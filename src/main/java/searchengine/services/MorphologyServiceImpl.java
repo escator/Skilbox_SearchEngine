@@ -28,6 +28,7 @@ public class MorphologyServiceImpl implements MorphologyService {
     private final LemmaRepository lemmaRepository;
     private final IndexEntityRepository indexEntityRepository;
     private final IndexService indexService;
+    private final PageService pageService;
     private static final String WORD_TYPE_REGEX = "\\W\\w&&[^а-яА-Я\\s]";
     private static final String[] particlesNames = new String[]{"МЕЖД", "ПРЕДЛ", "СОЮЗ"};
     private Site site;
@@ -36,6 +37,7 @@ public class MorphologyServiceImpl implements MorphologyService {
         this.luceneMorphology = new RussianLuceneMorphology();
         this.lemmaRepository = indexService.getLemmaRepository();
         this.indexEntityRepository = indexService.getIndexEntityRepository();
+        this.pageService = indexService.getPageService();
         this.indexService = indexService;
     }
 
@@ -50,7 +52,7 @@ public class MorphologyServiceImpl implements MorphologyService {
     @Override
     public void processSite(IndexService indexService, Site site) {
         this.site = site;
-        List<Page> pages = indexService.findPagesBySite(new SiteDto(site.getUrl(), site.getName()));
+        List<Page> pages = pageService.findPagesBySite(new SiteDto(site.getUrl(), site.getName()));
         process(indexService, pages);
     }
 

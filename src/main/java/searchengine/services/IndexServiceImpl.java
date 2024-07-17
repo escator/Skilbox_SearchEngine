@@ -32,6 +32,8 @@ public class IndexServiceImpl implements IndexService {
 
     // get sites list
     private final SitesList sitesList;
+    private final PageService pageService;
+    private final SiteService siteService;
     private final SiteRepository siteRepository;
     private final PageRepository pageRepository;
     private final LemmaRepository lemmaRepository;
@@ -59,14 +61,14 @@ public class IndexServiceImpl implements IndexService {
             return;
         }
         Site s;
-        if ((s = findSite(null, siteDto.getName(), siteDto.getUrl())) != null) {
-            deleteSite(s);
+        if ((s = siteService.findSite(null, siteDto.getName(), siteDto.getUrl())) != null) {
+            siteService.deleteSite(s);
         }
 
         Site site = SiteToolsBox.siteDtoToSiteModel(siteDto);
         site.setStatus(IndexingStatus.INDEXING);
         site.setStatusTime(LocalDateTime.now());
-        site = saveSite(site);
+        site = siteService.saveSite(site);
 
         PageDto pageDto = new PageDto(
                 siteDto.getUrl(),
@@ -94,7 +96,7 @@ public class IndexServiceImpl implements IndexService {
 
         // Если посещали данную страницу, то удаляем её из БД
         if (isVisitedLinks(url)) {
-            deletePageByUrl(url);
+            pageService.deletePageByUrl(url);
         }
 
         HtmlParseService htmlParseService = new HtmlParseService(url, LinkToolsBox.extractRootDomain(url));
@@ -103,7 +105,7 @@ public class IndexServiceImpl implements IndexService {
             Page page = new Page();
             page.setPath(LinkToolsBox.getShortUrl(url, LinkToolsBox.extractRootDomain(url)));
             page.setCode(htmlParseResponse.getStatus());
-            page.setSite(findSite(null, null, LinkToolsBox.extractRootDomain(url)));
+            page.setSite(siteService.findSite(null, null, LinkToolsBox.extractRootDomain(url)));
             if (page.getSite() == null) {
                 Site site = new Site();
                 List<SiteDto> siteDtoList = sitesList.getSites();
@@ -116,10 +118,10 @@ public class IndexServiceImpl implements IndexService {
                 }
                 site.setStatus(IndexingStatus.RANDOM_PAGE);
                 site.setStatusTime(LocalDateTime.now());
-                page.setSite(saveSite(site));
+                page.setSite(siteService.saveSite(site));
             }
             page.setContent(htmlParseResponse.getDocument().toString());
-            page = savePage(page);
+            page = pageService.savePage(page);
 
             lemmatizePage(page);
         }
@@ -138,72 +140,8 @@ public class IndexServiceImpl implements IndexService {
     }
 
     @Override
-    public Site saveSite(Site site) {
-        return siteRepository.save(site);
-    }
-
-    @Override
-    public void deleteSite(Site site) {
-        List<Page> pages = findPagesBySite(SiteToolsBox.siteModelToSiteDto(site));
-        pages.forEach(this::deleteLemmaByPage);
-        siteRepository.delete(site);
-    }
-
-    @Override
-    public List<Site> findAll() {
-        return siteRepository.findAll();
-    }
-
-    @Override
-    public void deletePage(Page page) {
-        deleteLemmaByPage(page);
-        pageRepository.delete(page);
-    }
-
-    @Override
-    public synchronized Page savePage(Page page) {
-        return pageRepository.save(page);
-    }
-
-
-// TABLE Sites service
-
-    /**
-     * Поиск в БД таблица sites. Если указано id, то поиск будет произведен по id
-     * параметры name и url будут проигнорированы.
-     * если параметр id не указан, то поиск будет произведен по url или name
-     *
-     * @param id   Integer id записи (может быть null)
-     * @param name String название сайта (может быть null)
-     * @param url  String url сайта (может быть null)
-     * @return Site сущность или null
-     */
-    @Override
-    public Site findSite(Integer id, String name, String url) {
-        Site res = null;
-        if (id != null) {
-            return findSiteById(id);
-        } else if (name != null || url != null) {
-            Site site = new Site();
-            site.setName(name);
-            site.setUrl(url);
-            Example<Site> example = Example.of(site);
-            Optional<Site> optionalSite = siteRepository.findOne(example);
-            if (!optionalSite.isEmpty()) {
-                res = optionalSite.get();
-            }
-        }
-        return res;
-    }
-
-    @Override
-    public Site findSiteById(Integer id) {
-        return siteRepository.findById(id).orElse(null);
-    }
-
-    @Override
     public void updateDate(Site site, LocalDateTime date) {
-        Site existingSite = findSite(null, site.getName(), site.getUrl());
+        Site existingSite = siteService.findSite(null, site.getName(), site.getUrl());
         if (existingSite != null) {
             existingSite.setStatusTime(date);
             siteRepository.save(existingSite);
@@ -212,7 +150,7 @@ public class IndexServiceImpl implements IndexService {
 
     @Override
     public void updateLastError(Site site, String error) {
-        Site existingSite = findSite(null, site.getName(), site.getUrl());
+        Site existingSite = siteService.findSite(null, site.getName(), site.getUrl());
         if (existingSite != null) {
             existingSite.setLastError(error);
             siteRepository.save(existingSite);
@@ -231,55 +169,9 @@ public class IndexServiceImpl implements IndexService {
         }
     }
 
-    // TABLE Pages service
-    @Override
-    public int getPagesCount(SiteDto siteDto) {
-        if (siteDto == null) {
-            return (int) pageRepository.count();
-        }
-        Site site = findSite(null, siteDto.getName(), siteDto.getUrl());
-        Page page = new Page();
-        page.setSite(site);
-        Example<Page> example = Example.of(page);
-        Long count = pageRepository.count(example);
-        return count.intValue();
-    }
-
-    @Override
-    public List<Page> findPagesBySite(SiteDto siteDto) {
-        Site site = findSite(null, siteDto.getName(), siteDto.getUrl());
-        Page page = new Page();
-        page.setSite(site);
-        Example<Page> example = Example.of(page);
-        List<Page> result = pageRepository.findAll(example);
-        return result;
-    }
-
-    public void deletePageByUrl(String url) {
-        Page page = new Page();
-        page.setPath(LinkToolsBox.getShortUrl(url, LinkToolsBox.extractRootDomain(url)));
-        page.setSite(findSite(null, null, LinkToolsBox.extractRootDomain(url)));
-        Example<Page> example = Example.of(page);
-        Optional<Page> pageOptional = pageRepository.findOne(example);
-        if (pageOptional.isPresent()) {
-            deleteLemmaByPage(pageOptional.get());
-            deletePage(pageOptional.get());
-        }
-    }
 
     // TABLE Lemma service
-    private void deleteLemmaByPage(Page page) {
-        IndexEntity indexEntity = new IndexEntity();
-        indexEntity.setPage(page);
-        Example<IndexEntity> example = Example.of(indexEntity);
-        List<IndexEntity> indexEntities = indexEntityRepository.findAll(example);
-        for (IndexEntity indexEn : indexEntities) {
-            Lemma lemma = indexEn.getLemma();
-            lemma.decrementFrequency();
-            lemmaRepository.save(lemma);
-        }
-        indexEntityRepository.deleteAll(indexEntities);
-    }
+
 
     @Override
     public Integer lemmaCount(Example<Lemma> example) {
@@ -318,7 +210,7 @@ public class IndexServiceImpl implements IndexService {
     public boolean isVisitedLinks(String url) {
         Page page = new Page();
         page.setPath(LinkToolsBox.getShortUrl(url));
-        page.setSite(findSite(null, null, url));
+        page.setSite(siteService.findSite(null, null, url));
         Example<Page> example = Example.of(page);
         return pageRepository.exists(example);
     }
@@ -326,7 +218,6 @@ public class IndexServiceImpl implements IndexService {
     //TODO Удалить перед сдачей проекта
     public void test() {
         log.info("test");
-        List<SiteDto> siteList = sitesList.getSites();
-        log.info("{}, {}", siteList.get(0).getUrl(), getPagesCount(siteList.get(0)));
+
     }
 }

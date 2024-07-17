@@ -17,20 +17,13 @@ public interface IndexService {
     IndexingResponse indexingAll();
     void indexingSite(SiteDto siteDto);
     IndexingResponse indexingPage(SiteDto siteDto);
-    Site saveSite(Site site);
-    void deleteSite(Site site);
-    List<Site> findAll();
-    Site findSite(Integer id, String name, String url);
-    Site findSiteById(Integer id);
+
     void updateDate(Site site, LocalDateTime date);
     void updateStatus(Site site, IndexingStatus indexingStatus);
     void updateLastError(Site site, String error);
-    int getPagesCount(SiteDto siteDto);
-    Page savePage(Page page);
-    void deletePage(Page page);
     boolean isVisitedLinks(String url);
-    public List<Page> findPagesBySite(SiteDto siteDto);
     LemmaRepository getLemmaRepository();
     IndexEntityRepository getIndexEntityRepository();
+    PageService getPageService();
     Integer lemmaCount(Example<Lemma> example);
 }

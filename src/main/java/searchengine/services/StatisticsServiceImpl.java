@@ -21,6 +21,8 @@ public class StatisticsServiceImpl implements StatisticsService {
     private final Random random = new Random();
     private final SitesList sites;
     private final IndexService indexService;
+    private final SiteService siteService;
+    private final PageService pageService;
 
     @Override
     public StatisticsResponse getStatistics() {
@@ -43,14 +45,14 @@ public class StatisticsServiceImpl implements StatisticsService {
             item.setName(site.getName());
             item.setUrl(site.getUrl());
             // получаем количество проиндексированных страниц на сайте
-            int pages = indexService.getPagesCount(sitesList.get(i));
+            int pages = pageService.getPagesCount(sitesList.get(i));
 
             int lemmas = indexService.lemmaCount(null);
             item.setPages(pages);
             item.setLemmas(lemmas);
 
             // TODO установить нулевые данные при первом запуске
-            Site siteEntity = indexService.findSite(null, sitesList.get(i).getName(), sitesList.get(i).getUrl());
+            Site siteEntity = siteService.findSite(null, sitesList.get(i).getName(), sitesList.get(i).getUrl());
             item.setStatus(siteEntity.getStatus().name());
             String error = siteEntity.getLastError();
             item.setError((error == null) ? "null" : error);
