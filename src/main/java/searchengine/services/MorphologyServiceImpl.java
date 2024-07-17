@@ -56,23 +56,18 @@ public class MorphologyServiceImpl implements MorphologyService {
 
 
     private void process(IndexService indexService, List<Page> pages) {
-//        this.site = site;
-//        List<Page> pages = indexService.findPagesBySite(new SiteDto(site.getUrl(), site.getName()));
 
         for (Page page : pages) {
             if (page.getCode() != 200)
                 continue;
             String text = page.getContent();
-            HashMap<String, Integer> lemmas = getLemmas(stripHtml(text));
-
-            //lemmas.forEach((key, value) -> {saveLemmasToDB(key, value, page);});
+            HashMap<String, Integer> lemmas = getLemmasFromText(stripHtml(text));
             try {
                 saveLemmasToDB(lemmas, page);
                 saveIndexToDB(lemmas, page);
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
-
         }
     }
 
@@ -103,7 +98,6 @@ public class MorphologyServiceImpl implements MorphologyService {
                 lemmasOnDBMap.put(lemma, savedLemma); // добавляем список БД
             }
             saveLemmasList.add(savedLemma);
-
         }
         // сохраняем данные в БД пакетом
         lemmaRepository.saveAll(saveLemmasList);
@@ -130,7 +124,6 @@ public class MorphologyServiceImpl implements MorphologyService {
             saveIndexEntityList.add(indexEntity);
         }
         indexEntityRepository.saveAll(saveIndexEntityList);
-
     }
 
     /**
@@ -152,16 +145,15 @@ public class MorphologyServiceImpl implements MorphologyService {
         return lemmaMap;
     }
 
-
-    private Lemma strToLemma(String lemmaStr) {
+    private Lemma strToLemma(String lemmaStr, Site site) {
         Lemma lemmaEntity = new Lemma();
         lemmaEntity.setLemma(lemmaStr);
+        lemmaEntity.setSite(site);
         return lemmaEntity;
     }
 
-
     @Override
-    public HashMap<String, Integer> getLemmas(String text) {
+    public HashMap<String, Integer> getLemmasFromText(String text) {
         List<String> words = getWords(text);
         HashMap<String, Integer> lemmas = new HashMap<>();
 
@@ -217,10 +209,16 @@ public class MorphologyServiceImpl implements MorphologyService {
         return false;
     }
 
+    /**
+     * Получиь из БД все List<lemmas> согласно запроса.
+     * @param word String лемма
+     * @param site Site сайт для которого находить леммы, если null то по всем сайтам
+     * @return
+     */
     @Override
-    public List<Lemma> findLemmaByName(String word) {
-        List<Lemma> lemmasList = lemmaRepository.findAll(Example.of(strToLemma(word)), Sort.by(Sort.Direction.DESC, "frequency"));
-
+    public List<Lemma> findLemmaByName(String word, Site site) {
+        List<Lemma> lemmasList = lemmaRepository.findAll(Example.of(strToLemma(word, site)), Sort.by(Sort.Direction.ASC, "frequency"));
+//        lemmasList.stream().forEach(lemma -> log.info("lemma: {} - {}", lemma.getLemma(), lemma.getFrequency()));
         return lemmasList;
     }
 

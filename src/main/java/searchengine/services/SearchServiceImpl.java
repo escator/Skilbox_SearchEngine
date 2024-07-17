@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import searchengine.dto.index.SiteDto;
 import searchengine.model.Lemma;
+import searchengine.model.Page;
 import searchengine.model.Site;
 import searchengine.repository.IndexEntityRepository;
 import searchengine.repository.LemmaRepository;
@@ -11,6 +12,7 @@ import searchengine.response.SearchResponse;
 import searchengine.util.SiteToolsBox;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -32,16 +34,30 @@ public class SearchServiceImpl implements SearchService {
     @Override
     public SearchResponse search(String query, int offset, int limit, String siteUrl) {
         log.info("Searching for {}", query);
-        HashMap<String, Integer> lemmasSearchQueryMap = morphologyService.getLemmas(query);
+        // получаем map лемм из
+        HashMap<String, Integer> lemmasSearchQueryMap = morphologyService.getLemmasFromText(query);
+        // удаляем те леммы, которые не встречаются слишком часто
         lemmasSearchQueryMap = removeFerquenterLemmas(lemmasSearchQueryMap, 65.0, siteUrl);
-        for (String lemma : lemmasSearchQueryMap.keySet()) {
+
+        Map<String, Integer> sortMap = lemmasSearchQueryMap.entrySet().stream()
+                .sorted(Map.Entry.<String, Integer>comparingByValue()).collect(Collectors.toMap(
+                        Map.Entry::getKey,
+                        Map.Entry::getValue,
+                        (a, b) -> a,
+                        LinkedHashMap::new
+                ));
+
+
+        for (String lemma : sortMap.keySet()) {
             log.info("Lemma {} is {}", lemma, lemmasSearchQueryMap.get(lemma));
         }
-        List<String> lemassSortedList = sortLemmasOnRating(lemmasSearchQueryMap); // сортируем по рейтингу
-        for (String lemma : lemassSortedList) {
-            log.info("Lemma {}", lemma);
-        }
+
         return new SearchResponse();
+    }
+
+    private List<Page> getAllPageFoundLemmas(HashMap<String, Integer> lemmasMap, String siteUrl) {
+
+        return null;
     }
 
     /**
@@ -58,7 +74,7 @@ public class SearchServiceImpl implements SearchService {
         SiteDto siteDto = SiteToolsBox.siteModelToSiteDto(site);
         int allPageCount = indexService.getPagesCount(siteDto);
         for (String lemma : lemmasMap.keySet()) {
-            int countLemmas = countPageOnLemmas(lemma);
+            int countLemmas = countPageFoundLemmas(lemma, site);
             if (((double)countLemmas / allPageCount * 100) > limitPercent) {
                 lemmasMap.remove(lemma);
             } else {
@@ -68,44 +84,19 @@ public class SearchServiceImpl implements SearchService {
         return lemmasMap;
     }
 
-    private List<String> getWords(String query) {
-        List<String> words = morphologyService.getWords(query);
-        for (String word : words) {
-            log.info("Words are {}", word);
-
-        }
-        return null;
-    }
 
     /**
      * Количество страниц на которые содержат переданную лемму
-     * @param lemmaStr слово для выдора
+     * @param lemmaStr слово для выбора
      * @return количество страниц которые содержат слово
      */
-    private int countPageOnLemmas(String lemmaStr)  {
-        //TODO Посчитать количество страниц на которые содержат слово
+    private int countPageFoundLemmas(String lemmaStr, Site site) {
         int countLemmas = 0;
-        List<Lemma> lemmaList = morphologyService.findLemmaByName(lemmaStr);
+        List<Lemma> lemmaList = morphologyService.findLemmaByName(lemmaStr, site);
         for (Lemma lemma : lemmaList) {
             countLemmas += lemma.getFrequency();
         }
         return countLemmas;
     }
 
-    /**
-     * Возвращает сортированный по рейтингу список лемм
-     * @param lemmas
-     * @return
-     */
-    private List<String> sortLemmasOnRating(HashMap<String, Integer> lemmas)  {
-        // TODO Сортировать слова по рейтингу
-        List<String> result = lemmas.entrySet().stream()
-                .sorted(Map.Entry.<String, Integer>comparingByValue().reversed())
-                .map(a -> a.getKey())
-                .toList();
-
-
-
-        return null;
-    }
 }

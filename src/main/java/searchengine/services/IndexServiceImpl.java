@@ -144,7 +144,7 @@ public class IndexServiceImpl implements IndexService {
 
     @Override
     public void deleteSite(Site site) {
-        List<Page> pages  = findPagesBySite(SiteToolsBox.siteModelToSiteDto(site));
+        List<Page> pages = findPagesBySite(SiteToolsBox.siteModelToSiteDto(site));
         pages.forEach(this::deleteLemmaByPage);
         siteRepository.delete(site);
     }
@@ -180,14 +180,20 @@ public class IndexServiceImpl implements IndexService {
      */
     @Override
     public Site findSite(Integer id, String name, String url) {
+        Site res = null;
         if (id != null) {
             return findSiteById(id);
+        } else if (name != null || url != null) {
+            Site site = new Site();
+            site.setName(name);
+            site.setUrl(url);
+            Example<Site> example = Example.of(site);
+            Optional<Site> optionalSite = siteRepository.findOne(example);
+            if (!optionalSite.isEmpty()) {
+                res = optionalSite.get();
+            }
         }
-        Site site = new Site();
-        site.setName(name);
-        site.setUrl(url);
-        Example<Site> example = Example.of(site);
-        return siteRepository.findOne(example).orElse(null);
+        return res;
     }
 
     @Override
@@ -278,10 +284,10 @@ public class IndexServiceImpl implements IndexService {
     @Override
     public Integer lemmaCount(Example<Lemma> example) {
         int res = 0;
-        if (example  == null) {
-            res = (int)lemmaRepository.count();
+        if (example == null) {
+            res = (int) lemmaRepository.count();
         } else {
-            res = (int)lemmaRepository.count(example);
+            res = (int) lemmaRepository.count(example);
         }
         return res;
     }
