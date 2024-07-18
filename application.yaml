@@ -8,7 +8,7 @@ spring:
     password: ya78yrc8n4w3984
     url: jdbc:mysql://localhost:3306/search_engine?useSSL=false&requireSSL=false&allowPublicKeyRetrieval=true
   jpa:
-    show_sql: true
+    show_sql: false
     hibernate.ddl-auto: update
   jackson:
     default-property-inclusion: non_null

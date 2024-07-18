@@ -16,8 +16,8 @@ import searchengine.repository.SiteRepository;
 import searchengine.util.LinkToolsBox;
 import searchengine.util.SiteToolsBox;
 
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -116,7 +116,7 @@ public class SiteServiceImpl implements SiteService {
     }
 
     @Override
-    public int getPagesCount(SiteDto siteDto) {
+    public int countPagesFromSite(SiteDto siteDto) {
         if (siteDto == null) {
             return (int) pageRepository.count();
         }
@@ -147,4 +147,5 @@ public class SiteServiceImpl implements SiteService {
         pageRepository.deleteAll();
         siteRepository.deleteAll();
     }
+
 }

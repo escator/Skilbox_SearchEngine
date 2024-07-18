@@ -1,11 +1,13 @@
 package searchengine.services;
 
 import searchengine.dto.index.SiteDto;
+import searchengine.model.IndexEntity;
 import searchengine.model.Lemma;
 import searchengine.model.Page;
 import searchengine.model.Site;
 
 import java.util.List;
+import java.util.Set;
 
 public interface SiteService {
     /**
@@ -29,8 +31,21 @@ public interface SiteService {
     Page savePage(Page page);
     void deletePage(Page page);
     void deletePageByUrl(String url);
+
+    /**
+     * Удаляет леммы из счетчиков и БД (таблицы index_t, lemma)
+     * содержащиеся на указанной странице. Это действие требуется
+     * перед удалением страницы.
+     * @param page
+     */
     void deleteLemmaByPage(Page page);
-    int getPagesCount(SiteDto siteDto);
+
+    /**
+     * Количество страниц в БД или на конкретном сайте.
+     * @param siteDto siteDto объект site, для которого будет произведена выборка
+     * @return int количество страниц
+     */
+    int countPagesFromSite(SiteDto siteDto);
 
     /**
      * Возвращает суммарное количество лемм на сайте
@@ -40,4 +55,5 @@ public interface SiteService {
      * @return int суммарное количество лемм на сайте или в БД
      */
     Integer сountLemmasOnSite(Lemma lemma);
+
 }

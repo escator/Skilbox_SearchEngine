@@ -44,7 +44,7 @@ public class StatisticsServiceImpl implements StatisticsService {
             item.setName(site.getName());
             item.setUrl(site.getUrl());
             // получаем количество проиндексированных страниц на сайте
-            int pages = siteService.getPagesCount(sitesList.get(i));
+            int pages = siteService.countPagesFromSite(sitesList.get(i));
 
             int lemmas = siteService.сountLemmasOnSite(null);
             item.setPages(pages);

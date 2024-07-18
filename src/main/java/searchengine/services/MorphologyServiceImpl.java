@@ -154,6 +154,12 @@ public class MorphologyServiceImpl implements MorphologyService {
         return lemmaEntity;
     }
 
+    /**
+     * Получить из переданной строки леммы и посчитать сколько
+     * раз она встретилась в данной строке
+     * @param text String исходный текст
+     * @return HashMap<String, Integer> лемма и кол-во раз она встретилась в тексте
+     */
     @Override
     public HashMap<String, Integer> getLemmasFromText(String text) {
         List<String> words = getWords(text);
