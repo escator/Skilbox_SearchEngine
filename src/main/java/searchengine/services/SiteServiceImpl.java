@@ -142,10 +142,14 @@ public class SiteServiceImpl implements SiteService {
 
     @Override
     public void deleteAllSite() {
-        indexEntityRepository.deleteAll();
-        lemmaRepository.deleteAll();
-        pageRepository.deleteAll();
-        siteRepository.deleteAll();
+        try {
+            indexEntityRepository.deleteAll();
+            lemmaRepository.deleteAll();
+            pageRepository.deleteAll();
+            siteRepository.deleteAll();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
 }

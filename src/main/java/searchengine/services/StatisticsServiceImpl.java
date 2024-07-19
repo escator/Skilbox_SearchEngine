@@ -35,6 +35,9 @@ public class StatisticsServiceImpl implements StatisticsService {
         TotalStatistics total = new TotalStatistics();
         total.setSites(sites.getSites().size());
         total.setIndexing(true);
+        total.setPages(0);
+        //total.setSites(0);
+        total.setLemmas(0);
 
         List<DetailedStatisticsItem> detailed = new ArrayList<>();
         List<SiteDto> sitesList = sites.getSites();
@@ -52,6 +55,9 @@ public class StatisticsServiceImpl implements StatisticsService {
 
             // TODO установить нулевые данные при первом запуске
             Site siteEntity = siteService.findSite(null, sitesList.get(i).getName(), sitesList.get(i).getUrl());
+            if (siteEntity == null) {
+                break;
+            }
             item.setStatus(siteEntity.getStatus().name());
             String error = siteEntity.getLastError();
             item.setError((error == null) ? "null" : error);
@@ -59,6 +65,7 @@ public class StatisticsServiceImpl implements StatisticsService {
                     (random.nextInt(10_000)));
 
 
+            //total.setSites();
             total.setPages(total.getPages() + pages);
             total.setLemmas(total.getLemmas() + lemmas);
             detailed.add(item);

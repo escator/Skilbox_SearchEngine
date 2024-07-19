@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Example;
 import org.springframework.stereotype.Service;
 import searchengine.dto.index.SiteDto;
+import searchengine.dto.search.SearchItemData;
 import searchengine.model.IndexEntity;
 import searchengine.model.Lemma;
 import searchengine.model.Page;
@@ -57,10 +58,21 @@ public class SearchServiceImpl implements SearchService {
                     .filter(page -> pagesNext.contains(page))
                     .toList();
         }
+
+
+
         pages.stream().forEach(page -> log.info("id: {}, url: {}", page.getId(), page.getPath()));
 
 
+
         return new SearchResponse();
+    }
+
+    private int absRelevance(List<String> lemmasList, List<Page> pagesList) {
+
+
+
+        return 0;
     }
 
     private List<Page> getListPagesFoundLemmas(String lemmaStr, Site site) {

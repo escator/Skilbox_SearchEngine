@@ -119,6 +119,6 @@ public class ApiController {
             @RequestParam(required  = false) Integer limit,
             @RequestParam(required = false) String site) {
         SearchResponse response = searchService.search(query, offset, limit, site);
-        return null;
+        return new ResponseEntity(response, HttpStatus.OK);
     }
 }
