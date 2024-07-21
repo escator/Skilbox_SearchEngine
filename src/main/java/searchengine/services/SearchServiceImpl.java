@@ -4,7 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Example;
 import org.springframework.stereotype.Service;
 import searchengine.dto.index.SiteDto;
-import searchengine.dto.search.SearchItemData;
+import searchengine.dto.search.SearchPageData;
 import searchengine.model.IndexEntity;
 import searchengine.model.Lemma;
 import searchengine.model.Page;
@@ -50,29 +50,53 @@ public class SearchServiceImpl implements SearchService {
         // сортируем леммы по частоте от мин до макс
         Map<String, Integer> sortMap = sortLemmasMap(lemmasSearchQueryMap);
         List<String> lemmasSortList = sortMap.keySet().stream().toList();
+        // отбираем страницы содержащие все леммы из запроса
+        List<Page> pages = findPageMatchingQuery(lemmasSortList, site);
 
-        List<Page> pages = getListPagesFoundLemmas(lemmasSortList.get(0), site);
-        for (int i = 1; i < lemmasSortList.size(); i++) {
-            List<Page> pagesNext = getListPagesFoundLemmas(lemmasSortList.get(i), site);
+        List<SearchPageData> searchingPages = convertPageToSearchPageData(pages, lemmasSortList, site);
+
+
+        // pages.stream().forEach(page -> log.info("id: {}, url: {}", page.getId(), page.getPath()));
+        searchingPages.forEach(page -> log.info("id: {}, abs: {} rel: {}", page.getPage().getPath(), page.getAbsRelevance(), page.getRelRelevance()));
+        return new SearchResponse();
+    }
+
+    private List<SearchPageData> convertPageToSearchPageData(List<Page> pagesList, List<String> lemmasList, Site site) {
+        List<SearchPageData> searchingPages = new ArrayList<>();
+        List<Lemma> lemmas = findAllLemmaByName(lemmasList, site);
+        for (Page page : pagesList) {
+            SearchPageData searchingPage = new SearchPageData();
+            IndexEntity entity = new IndexEntity();
+            entity.setPage(page);
+            List<IndexEntity> entitiesIndex = indexEntityRepository.findAll(Example.of(entity));
+            entitiesIndex = entitiesIndex.stream().filter(e -> lemmas.contains(e.getLemma())).toList();
+            Map<Lemma, Double> lem = new HashMap<>();
+            for (IndexEntity e : entitiesIndex) {
+                lem.put(e.getLemma(), e.getRank());
+            }
+
+            searchingPage.setPage(page);
+            searchingPage.setLemmas(lem);
+            searchingPages.add(searchingPage);
+        }
+        return resolveRelRelevance(searchingPages);
+    }
+
+    private List<Page> findPageMatchingQuery(List<String> lemmasStrings, Site site) {
+        List<Page> pages = getListPagesFoundLemmas(lemmasStrings.get(0), site);
+        for (int i = 1; i < lemmasStrings.size(); i++) {
+            List<Page> pagesNext = getListPagesFoundLemmas(lemmasStrings.get(i), site);
             pages = pages.stream()
                     .filter(page -> pagesNext.contains(page))
                     .toList();
         }
-
-
-
-        pages.stream().forEach(page -> log.info("id: {}, url: {}", page.getId(), page.getPath()));
-
-
-
-        return new SearchResponse();
+        return pages;
     }
 
-    private int absRelevance(List<String> lemmasList, List<Page> pagesList) {
-
-
-
-        return 0;
+    private List<SearchPageData> resolveRelRelevance(List<SearchPageData> data) {
+        double maxAbsRelevance = data.stream().map(page -> page.getAbsRelevance()).max(Double::compare).get();
+        data.forEach(p -> p.setRelRelevance(p.getAbsRelevance() / maxAbsRelevance));
+        return data;
     }
 
     private List<Page> getListPagesFoundLemmas(String lemmaStr, Site site) {
@@ -83,14 +107,26 @@ public class SearchServiceImpl implements SearchService {
             entity.setLemma(lemma);
             entitiesIndex.addAll(indexEntityRepository.findAll(Example.of(entity)));
         }
-        if (site != null) {
-            entitiesIndex = entitiesIndex.stream()
-                    .filter(entity -> entity.getPage().getSite().equals(site))
-                    .collect(Collectors.toList());
-        }
+
         return entitiesIndex.stream()
                 .map(IndexEntity::getPage)
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * Возвращает список все обектов Lemma по всем строковым представлениям
+     * переданным в списке lemmaStr
+     * @param lemmaStr List<String> список строковых представлений для поиска
+     * @param site Site объект сайта для которого будет делаться выборка
+     *             null поиск по всей БД
+     * @return List<Lemma> найденные объекты леммы
+     */
+    private List<Lemma> findAllLemmaByName(List<String> lemmaStr, Site site) {
+        List<Lemma> lemmasList = new ArrayList<>();
+        for (String lemma : lemmaStr) {
+            lemmasList.addAll(findLemmaByName(lemma, site));
+        }
+        return lemmasList;
     }
 
     /**

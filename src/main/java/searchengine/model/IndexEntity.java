@@ -23,6 +23,6 @@ public class IndexEntity {
     private Lemma lemma;
 
     @Column(name="rating", nullable=false)
-    private Float rank;
+    private Double rank;
 
 }

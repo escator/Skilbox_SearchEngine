@@ -122,7 +122,7 @@ public class MorphologyServiceImpl implements MorphologyService {
             IndexEntity indexEntity = new IndexEntity();
             indexEntity.setLemma(lemmasOnDBMap.get(lemmaStr));
             indexEntity.setPage(page);
-            indexEntity.setRank((float) lemmasOnPageMap.get(lemmaStr).floatValue());
+            indexEntity.setRank(lemmasOnPageMap.get(lemmaStr).doubleValue());
             saveIndexEntityList.add(indexEntity);
         }
         indexEntityRepository.saveAll(saveIndexEntityList);
