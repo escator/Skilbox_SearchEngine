@@ -18,6 +18,8 @@ public class SearchPageData {
     }
 
     private Page page;
+    private String title;
+    private String snippet;
     private Map<Lemma, Double> lemmas;
     private double absRelevance;
     private double relRelevance;

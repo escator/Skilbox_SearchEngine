@@ -15,4 +15,6 @@ public interface MorphologyService {
     List<String> getWords(String text);
     boolean isNotWord(List<String> words);
     List<Lemma> findLemmaByName(String word, Site site);
+    String getNormalFormsWord(String word);
+    boolean checkString(String text);
 }

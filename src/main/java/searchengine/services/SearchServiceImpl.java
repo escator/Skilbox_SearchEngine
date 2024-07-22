@@ -1,6 +1,8 @@
 package searchengine.services;
 
 import lombok.extern.slf4j.Slf4j;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
 import org.springframework.data.domain.Example;
 import org.springframework.stereotype.Service;
 import searchengine.dto.index.SiteDto;
@@ -15,6 +17,7 @@ import searchengine.response.SearchResponse;
 import searchengine.util.SiteToolsBox;
 
 import java.util.*;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Service
@@ -57,12 +60,67 @@ public class SearchServiceImpl implements SearchService {
 
 
         // pages.stream().forEach(page -> log.info("id: {}, url: {}", page.getId(), page.getPath()));
-        searchingPages.forEach(page -> log.info("id: {}, abs: {} rel: {}", page.getPage().getPath(), page.getAbsRelevance(), page.getRelRelevance()));
+        //searchingPages.forEach(page -> log.info("id: {}, abs: {} rel: {}", page.getSnippet(), page.getAbsRelevance(), page.getRelRelevance()));
+        searchingPages.forEach(page -> log.info("id: {}, snippet: {} ", page.getPage().getId(), page.getSnippet()));
         return new SearchResponse();
     }
 
+    private String createSnippetForPage(SearchPageData pageData) {
+        int before = 10;
+        int after = 10;
+        String html = pageData.getPage().getContent();
+        String text = Jsoup.parse(html).body().text();
+        String [] words = text.split(" ");
+        List<String> lemmasStrList = pageData.getLemmas().keySet().stream().map(Lemma::getLemma).toList();
+        StringBuilder sb = new StringBuilder();
+
+        for (int i = 0; i < words.length; i++) {
+            String currentWord = words[i].replaceAll("[^А-я]", " ").toLowerCase().strip();
+            if (currentWord.isBlank() || currentWord.length() < 3 || !morphologyService.checkString(currentWord)) {
+                continue;
+            }
+            log.info("{} word {} check {}", i, currentWord, morphologyService.checkString(currentWord));
+            String normFormWord = morphologyService.getNormalFormsWord(currentWord);
+            if (lemmasStrList.contains(normFormWord)) {
+                int aBefore = 0;
+                int bAfter = 0;
+                if (i - before < 0) {
+                    aBefore = 0;
+                } else {
+                    aBefore = i - before;
+                }
+                if (i + after >= words.length) {
+                    bAfter = words.length - 1;
+                } else {
+                    bAfter = i + after;
+                }
+                for (int ii = aBefore; ii < bAfter; ii++) {
+                    log.info("{} word {}", ii, words[ii]);
+                    if (lemmasStrList.contains(morphologyService.getNormalFormsWord(words[ii]))) {
+                        sb.append("<b>" + words[ii] + "</b>");
+                    } else {
+                        sb.append(words[ii]);
+                    }
+                    sb.append(" ");
+                }
+                sb.append("\n");
+            }
+
+        }
+        return sb.toString();
+
+
+    }
+
+
+    private String getPageTitle(Page page) {
+        String html = page.getContent();
+        Document doc = Jsoup.parse(html);
+        return doc.title();
+    }
+
     private List<SearchPageData> convertPageToSearchPageData(List<Page> pagesList, List<String> lemmasList, Site site) {
-        List<SearchPageData> searchingPages = new ArrayList<>();
+        List<SearchPageData> searchingPagesList = new ArrayList<>();
         List<Lemma> lemmas = findAllLemmaByName(lemmasList, site);
         for (Page page : pagesList) {
             SearchPageData searchingPage = new SearchPageData();
@@ -77,9 +135,11 @@ public class SearchServiceImpl implements SearchService {
 
             searchingPage.setPage(page);
             searchingPage.setLemmas(lem);
-            searchingPages.add(searchingPage);
+            searchingPage.setTitle(getPageTitle(page));
+            searchingPage.setSnippet(createSnippetForPage(searchingPage));
+            searchingPagesList.add(searchingPage);
         }
-        return resolveRelRelevance(searchingPages);
+        return resolveRelRelevance(searchingPagesList);
     }
 
     private List<Page> findPageMatchingQuery(List<String> lemmasStrings, Site site) {
@@ -189,7 +249,7 @@ public class SearchServiceImpl implements SearchService {
      */
     private int countPageFoundLemmas(String lemmaStr, Site site) {
         int countLemmas = 0;
-        List<Lemma> lemmaList = morphologyService.findLemmaByName(lemmaStr, site);
+        List<Lemma> lemmaList = findLemmaByName(lemmaStr, site);
         for (Lemma lemma : lemmaList) {
             countLemmas += lemma.getFrequency();
         }

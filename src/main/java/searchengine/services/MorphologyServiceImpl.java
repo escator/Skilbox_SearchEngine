@@ -1,5 +1,6 @@
 package searchengine.services;
 
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.lucene.morphology.LuceneMorphology;
@@ -23,6 +24,7 @@ import java.util.*;
 
 @Slf4j
 @RequiredArgsConstructor
+@Getter
 public class MorphologyServiceImpl implements MorphologyService {
     private final LuceneMorphology luceneMorphology;
     private final LemmaRepository lemmaRepository;
@@ -157,6 +159,7 @@ public class MorphologyServiceImpl implements MorphologyService {
     /**
      * Получить из переданной строки леммы и посчитать сколько
      * раз она встретилась в данной строке
+     *
      * @param text String исходный текст
      * @return HashMap<String, Integer> лемма и кол-во раз она встретилась в тексте
      */
@@ -219,6 +222,7 @@ public class MorphologyServiceImpl implements MorphologyService {
 
     /**
      * Получиь из БД все List<lemmas> согласно запроса.
+     *
      * @param word String лемма
      * @param site Site сайт для которого находить леммы, если null то по всем сайтам
      * @return
@@ -234,8 +238,22 @@ public class MorphologyServiceImpl implements MorphologyService {
         return Jsoup.clean(html, Safelist.none());
     }
 
+    @Override
+    public String getNormalFormsWord(String word) {
+        List<String> res = luceneMorphology.getNormalForms(word
+                .replaceAll("[^А-я]", " ")
+                .toLowerCase()
+                .strip());
+        return res.get(0);
+    }
+
+    @Override
+    public boolean checkString(String text) {
+        return luceneMorphology.checkString(text);
+    }
+
+
     // TODO: Удалить после DEBUG
     public void test() {
-
     }
 }
