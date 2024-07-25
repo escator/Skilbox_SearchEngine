@@ -46,14 +46,13 @@ public class SearchServiceImpl implements SearchService {
 
     @Override
     public SearchResponse search(String query, int offset, int limit, String siteUrl) {
-        log.info("Searching for {}", query);
 
         Site site = siteService.findSite(null, null, siteUrl);
         // получаем map лемм из строки поиска
         HashMap<String, Integer> lemmasSearchQueryMap = morphologyService.getLemmasFromText(query);
         // удаляем те леммы, которые встречаются слишком часто и
         // заменяем value на колво страниц на которых лемма встретилась
-        lemmasSearchQueryMap = removeFerquenterLemmas(lemmasSearchQueryMap, 65.0, siteUrl);
+        lemmasSearchQueryMap = removeFerquenterLemmas(lemmasSearchQueryMap, 80.0, siteUrl);
         // сортируем леммы по частоте от мин до макс
         Map<String, Integer> sortMap = sortLemmasMap(lemmasSearchQueryMap);
         List<String> lemmasSortList = sortMap.keySet().stream().toList();
@@ -118,7 +117,7 @@ public class SearchServiceImpl implements SearchService {
     }
 
     /**
-     * Извлекает текст сниппета из массива слов, относительно позиций ключевых слов в списке positions смещаясь на расстояние указанных констант OFFSET_SNIPPET_START и OFFSET_SNIPPET_END. Константа MAX_LENGTH_SNIPPET - максимальная длина сниппета.
+     * Извлекает текст сниппета из массива слов, относительно позиций ключевых слов в списке positions смещаясь на расстояние указанных констант OFFSET_SNIPPET_START и OFFSET_SNIPPET_END. Константа MAX_LENGTH_SNIPPET - максимальная длина сниппета, может варьироваться в сторону превышения, т.к. добавляется фраза, содержащая ключевое слово, целиком. Если после добавления фразы длина привысила MAX_LENGTH_SNIPPET, то следующая фраза не добавляется, а сниппет считается сформированным.
      * @param textArray массив слов всей страницы
      * @param positions список позиций ключевых слов
      * @return
@@ -298,7 +297,7 @@ public class SearchServiceImpl implements SearchService {
 
         Site site = siteService.findSite(null, null, siteUrl);
         SiteDto siteDto = SiteToolsBox.siteModelToSiteDto(site);
-        int allPageCount = siteService.countPagesFromSite(siteDto);
+        int allPageCount = siteService.countPagesOnSite(siteDto);
         for (String lemma : lemmasMap.keySet()) {
             int countLemmas = countPageFoundLemmas(lemma, site);
             if (((double) countLemmas / allPageCount * 100) > limitPercent) {

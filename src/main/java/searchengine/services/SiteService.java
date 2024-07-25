@@ -1,13 +1,10 @@
 package searchengine.services;
 
 import searchengine.dto.index.SiteDto;
-import searchengine.model.IndexEntity;
-import searchengine.model.Lemma;
 import searchengine.model.Page;
 import searchengine.model.Site;
 
 import java.util.List;
-import java.util.Set;
 
 public interface SiteService {
     /**
@@ -45,15 +42,14 @@ public interface SiteService {
      * @param siteDto siteDto объект site, для которого будет произведена выборка
      * @return int количество страниц
      */
-    int countPagesFromSite(SiteDto siteDto);
+    int countPagesOnSite(SiteDto siteDto);
 
     /**
      * Возвращает суммарное количество лемм на сайте
-     * @param lemma объект Lemma, содержащая информацию о лемме,
-     *             для поиска по определенному сайту нужно установить значение site,
-     *             если null то считается кол-во всех лемм в БД
+     *
+     * @param siteDto экземпляр сущности siteDto или null
      * @return int суммарное количество лемм на сайте или в БД
      */
-    Integer сountLemmasOnSite(Lemma lemma);
-
+    int сountAllLemmasOnSite(SiteDto siteDto);
+    public long getStatusTime(SiteDto siteDto);
 }

@@ -25,7 +25,7 @@ public class Page {
 
     // код HTTP-ответа, полученный при запросе
     //страницы (например, 200, 404, 500 или другие)
-    @Column(columnDefinition  =  "INTEGER", name = "title", nullable = false)
+    @Column(columnDefinition  =  "INTEGER", name = "code", nullable = false)
     private Integer code;
 
     // контент страницы (HTML-код).

@@ -47,9 +47,9 @@ public class StatisticsServiceImpl implements StatisticsService {
             item.setName(site.getName());
             item.setUrl(site.getUrl());
             // получаем количество проиндексированных страниц на сайте
-            int pages = siteService.countPagesFromSite(sitesList.get(i));
+            int pages = siteService.countPagesOnSite(sitesList.get(i));
 
-            int lemmas = siteService.сountLemmasOnSite(null);
+            int lemmas = siteService.сountAllLemmasOnSite(sitesList.get(i));
             item.setPages(pages);
             item.setLemmas(lemmas);
 
@@ -61,13 +61,12 @@ public class StatisticsServiceImpl implements StatisticsService {
             item.setStatus(siteEntity.getStatus().name());
             String error = siteEntity.getLastError();
             item.setError((error == null) ? "null" : error);
-            item.setStatusTime(System.currentTimeMillis() -
-                    (random.nextInt(10_000)));
+            item.setStatusTime(siteService.getStatusTime(sitesList.get(i)));
 
 
             //total.setSites();
-            total.setPages(total.getPages() + pages);
-            total.setLemmas(total.getLemmas() + lemmas);
+            total.setPages(siteService.countPagesOnSite(null));
+            total.setLemmas(siteService.сountAllLemmasOnSite(null));
             detailed.add(item);
         }
 

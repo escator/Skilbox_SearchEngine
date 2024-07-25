@@ -16,8 +16,10 @@ import searchengine.repository.SiteRepository;
 import searchengine.util.LinkToolsBox;
 import searchengine.util.SiteToolsBox;
 
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -116,7 +118,7 @@ public class SiteServiceImpl implements SiteService {
     }
 
     @Override
-    public int countPagesFromSite(SiteDto siteDto) {
+    public int countPagesOnSite(SiteDto siteDto) {
         if (siteDto == null) {
             return (int) pageRepository.count();
         }
@@ -130,12 +132,17 @@ public class SiteServiceImpl implements SiteService {
 
 
     @Override
-    public Integer сountLemmasOnSite(Lemma lemma) {
+    public int сountAllLemmasOnSite(SiteDto siteDto) {
         int res = 0;
-        if (lemma == null) {
+        if (siteDto == null) {
             res = (int) lemmaRepository.count();
         } else {
-            res = (int) lemmaRepository.count(Example.of(lemma));
+            Site site = findSite(null, siteDto.getName(), siteDto.getUrl());
+            if (site != null) {
+                Lemma lemma = new Lemma();
+                lemma.setSite(site);
+                res = (int) lemmaRepository.count(Example.of(lemma));
+            }
         }
         return res;
     }
@@ -152,4 +159,16 @@ public class SiteServiceImpl implements SiteService {
         }
     }
 
+    @Override
+    public long getStatusTime(SiteDto siteDto) {
+        if (siteDto == null) {
+            return 0;
+        }
+        Site site = findSite(null, siteDto.getName(), siteDto.getUrl());
+        if (site == null) {
+            return 0;
+        }
+        LocalDateTime statusTime = site.getStatusTime();
+        return statusTime.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
+    }
 }
