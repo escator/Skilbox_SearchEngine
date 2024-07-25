@@ -21,6 +21,7 @@ public class SearchPageData {
     private String title;
     private String snippet;
     private Map<Lemma, Double> lemmas;
+    // absolute relevance расчитывается автоматически при добавлении lemm через сеттер
     private double absRelevance;
     private double relRelevance;
 
