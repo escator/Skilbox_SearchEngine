@@ -17,9 +17,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api")
 public class ApiController {
-
     private final StatisticsService statisticsService;
-
     private final IndexService indexService;
     private final SiteService siteService;
     private final SearchService searchService;
@@ -33,44 +31,6 @@ public class ApiController {
         this.searchService  = searchService;
         this.siteService = siteService;
     }
-
-////////////////TEST METHODS /////////////////////
-//TODO удалить все тестовые методы перед презентацией проекта
-
-    @GetMapping("/delete")
-    public ResponseEntity<IndexingResponse> delete() {
-        //TODO удалить метод после тестирования
-        log.info("delete test data");
-        List<Site> list = siteService.findAllSites();
-        log.info("delete " + list.get(0).toString());
-        siteService.deleteSite(list.get(0));
-        return null;
-    }
-
-    @GetMapping("/getLinks")
-    public void getLinks(@RequestParam String url) {
-        log.info("Controller: get links: " + url);
-        indexService.indexingSite(new SiteDto(url, "Test site"));
-    }
-
-    @PostMapping("/find")
-    public void find(@RequestBody SiteDto siteDto) {
-        Site res = siteService.findSite(null, siteDto.getName(), siteDto.getUrl());
-        log.info("Controller: find url:  " + siteDto.getUrl() + " is " + res.toString());
-    }
-
-    @PostMapping("/delete")
-    public void delete(@RequestBody SiteDto siteDto) {
-        siteService.deleteSite(siteService.findSite(null, siteDto.getName(), siteDto.getUrl()));
-        log.info("Controller: delete url:  " + siteDto.getUrl());
-    }
-
-    @GetMapping("/test")
-    public void getList() {
-        log.info("Controller: test");
-        //morphologyService.test();
-    }
-/////////END TEST METHODS //////////////
 
     // ОСНОВНОЕ API ////////////
     @GetMapping("/statistics")

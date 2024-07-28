@@ -18,15 +18,17 @@ import java.util.concurrent.ForkJoinPool;
 public class ThreadIndexingManager implements Runnable {
     @Getter
     PageDto pageDto;
-    IndexServiceImpl service;
-    public ThreadIndexingManager(PageDto pageDto, IndexServiceImpl service){
+    private final IndexService indexService;
+    private final SiteService siteService;
+    public ThreadIndexingManager(PageDto pageDto, IndexService indexService) {
         this.pageDto = pageDto;
-        this.service = service;
+        this.indexService = indexService;
+        this.siteService = indexService.getSiteService();
     }
     @Override
     public void run() {
         ForkJoinPool forkJoinPool = new ForkJoinPool();
-        PageScannerResponse response = forkJoinPool.invoke(new PageScannerService(pageDto, service));
+        PageScannerResponse response = forkJoinPool.invoke(new PageScannerService(pageDto, indexService));
         RunIndexMonitor.regIndexer(this);
 
         // Ожидаем когда отработают весь пул
@@ -40,20 +42,20 @@ public class ThreadIndexingManager implements Runnable {
         }
 
         if (RunIndexMonitor.isStopIndexing()) {
-            service.updateStatus(pageDto.getSite(), IndexingStatus.FAILED);
-            service.updateLastError(pageDto.getSite(), "Индексация остановлена пользователем");
+            siteService.updateStatusOnSite(pageDto.getSite(), IndexingStatus.FAILED);
+            siteService.updateLastErrorOnSite(pageDto.getSite(), "Индексация остановлена пользователем");
         } else if (response.getStatus() == PageScannerResponse.status.ERROR) {
-            service.updateStatus(pageDto.getSite(), IndexingStatus.FAILED);
-            service.updateLastError(pageDto.getSite(), response.getMessage());
+            siteService.updateStatusOnSite(pageDto.getSite(), IndexingStatus.FAILED);
+            siteService.updateLastErrorOnSite(pageDto.getSite(), response.getMessage());
         } else  {
             // Обрабатываем леммы
             try {
-                MorphologyService morphologyService = new MorphologyServiceImpl(service);
-                morphologyService.processSite(service, pageDto.getSite());
+                MorphologyService morphologyService = new MorphologyServiceImpl(indexService);
+                morphologyService.processSite(indexService, pageDto.getSite());
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
-            service.updateStatus(pageDto.getSite(), IndexingStatus.INDEXED);
+            siteService.updateStatusOnSite(pageDto.getSite(), IndexingStatus.INDEXED);
         }
         RunIndexMonitor.unregIndexer(this);
         LinkStorage.clear();

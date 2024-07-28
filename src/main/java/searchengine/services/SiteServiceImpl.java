@@ -5,10 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Example;
 import org.springframework.stereotype.Service;
 import searchengine.dto.index.SiteDto;
-import searchengine.model.IndexEntity;
-import searchengine.model.Lemma;
-import searchengine.model.Page;
-import searchengine.model.Site;
+import searchengine.model.*;
 import searchengine.repository.IndexEntityRepository;
 import searchengine.repository.LemmaRepository;
 import searchengine.repository.PageRepository;
@@ -69,6 +66,26 @@ public class SiteServiceImpl implements SiteService {
     @Override
     public List<Site> findAllSites() {
         return siteRepository.findAll();
+    }
+
+    @Override
+    public void updateLastErrorOnSite(Site site, String error) {
+        Site existingSite = findSite(null, site.getName(), site.getUrl());
+        if (existingSite != null) {
+            existingSite.setLastError(error);
+            saveSite(existingSite);
+        }
+    }
+
+    @Override
+    public void updateStatusOnSite(Site site, IndexingStatus newIndexingStatus) {
+        log.info("Updating site STATUS {} on {}", site.getUrl(), site.getStatus());
+        Site existingSite = findSiteById(site.getId());
+        if (existingSite != null) {
+            existingSite.setStatus(newIndexingStatus);
+            existingSite.setStatusTime(LocalDateTime.now());
+            saveSite(existingSite);
+        }
     }
 
     @Override

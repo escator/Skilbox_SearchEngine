@@ -62,8 +62,6 @@ public class PageScannerService extends RecursiveTask<PageScannerResponse> {
             return PageScannerResponse.getErrorResponse();
         }
 
-        //TODO вставить обработку лемм сюда
-
         //TODO принять решение по нужности данной проверки в БД.
         if (!indexService.isVisitedLinks(LinkToolsBox.getShortUrl(url, rootUrl))) {
             savePageToRepository(url, htmlParseResponse);

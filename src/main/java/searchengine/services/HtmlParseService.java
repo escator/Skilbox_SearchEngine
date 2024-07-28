@@ -17,7 +17,8 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 
 /**
- * Сервис для парсинга html страниц
+ * Сервис для парсинга html страниц.
+ *
  */
 @Slf4j
 

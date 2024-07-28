@@ -58,6 +58,9 @@ public class IndexServiceImpl implements IndexService {
             log.info("Site is not valid");
             return;
         }
+
+        // Если данный сайт уже проиндексированы, то удаляем все
+        // данные о нем из БД
         Site s;
         if ((s = siteService.findSite(null, siteDto.getName(), siteDto.getUrl())) != null) {
             siteService.deleteSite(s);
@@ -130,35 +133,6 @@ public class IndexServiceImpl implements IndexService {
         }
     }
 
-    @Override
-    public void updateDate(Site site, LocalDateTime date) {
-        Site existingSite = siteService.findSite(null, site.getName(), site.getUrl());
-        if (existingSite != null) {
-            existingSite.setStatusTime(date);
-            siteService.saveSite(existingSite);
-        }
-    }
-
-    @Override
-    public void updateLastError(Site site, String error) {
-        Site existingSite = siteService.findSite(null, site.getName(), site.getUrl());
-        if (existingSite != null) {
-            existingSite.setLastError(error);
-            siteService.saveSite(existingSite);
-        }
-    }
-
-    @Override
-    public void updateStatus(Site site, IndexingStatus newIndexingStatus) {
-        log.info("Updating site STATUS {} on {}", site.getUrl(), site.getStatus());
-        Site existingSite = siteService.findSiteById(site.getId());
-        if (existingSite != null) {
-            existingSite.setStatus(newIndexingStatus);
-            existingSite.setStatusTime(LocalDateTime.now());
-            siteService.saveSite(existingSite);
-        }
-    }
-
       /**
      * Проверяем присутствует ли в списке сайтов для индексации данный домен
      *
@@ -190,9 +164,4 @@ public class IndexServiceImpl implements IndexService {
         return pageRepository.exists(example);
     }
 
-    //TODO Удалить перед сдачей проекта
-    public void test() {
-        log.info("test");
-
-    }
 }

@@ -13,9 +13,6 @@ public interface IndexService {
     IndexingResponse indexingAllSites();
     void indexingSite(SiteDto siteDto);
     IndexingResponse indexingPage(SiteDto siteDto);
-    void updateDate(Site site, LocalDateTime date);
-    void updateStatus(Site site, IndexingStatus indexingStatus);
-    void updateLastError(Site site, String error);
     boolean isVisitedLinks(String url);
     LemmaRepository getLemmaRepository();
     IndexEntityRepository getIndexEntityRepository();

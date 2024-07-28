@@ -252,8 +252,4 @@ public class MorphologyServiceImpl implements MorphologyService {
         return luceneMorphology.checkString(text);
     }
 
-
-    // TODO: Удалить после DEBUG
-    public void test() {
-    }
 }

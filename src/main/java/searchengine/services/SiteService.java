@@ -1,6 +1,7 @@
 package searchengine.services;
 
 import searchengine.dto.index.SiteDto;
+import searchengine.model.IndexingStatus;
 import searchengine.model.Page;
 import searchengine.model.Site;
 
@@ -20,6 +21,8 @@ public interface SiteService {
     Site findSite(Integer id, String name, String url);
 
     Site findSiteById(Integer id);
+    public void updateLastErrorOnSite(Site site, String error);
+    public void updateStatusOnSite(Site site, IndexingStatus newIndexingStatus);
     Site saveSite(Site site);
     void deleteAllSite();
     void deleteSite(Site site);

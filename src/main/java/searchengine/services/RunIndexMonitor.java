@@ -14,7 +14,7 @@ import java.util.HashSet;
  */
 @Slf4j
 public class RunIndexMonitor {
-    private static HashSet<ThreadIndexingManager> indexers = new HashSet<ThreadIndexingManager>();
+    private static HashSet<ThreadIndexingManager> indexers = new HashSet<>();
     private static boolean stopIndexing = false;
     private static boolean isIndexingRunning = false;
     public static synchronized void regIndexer(ThreadIndexingManager indexer){

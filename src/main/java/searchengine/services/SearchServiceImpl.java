@@ -171,6 +171,9 @@ public class SearchServiceImpl implements SearchService {
      * @return список объектов типа SearchPageData, для каждого объекта типа Page
      */
     private List<SearchPageData> convertPageToSearchPageData(List<Page> pagesList, List<String> lemmasList, Site site) {
+        if (pagesList.size() < 1) {
+            return new ArrayList<>();
+        }
         List<SearchPageData> searchingPagesList = new ArrayList<>();
         List<Lemma> lemmas = findAllLemmaByName(lemmasList, site);
         for (Page page : pagesList) {
@@ -201,6 +204,9 @@ public class SearchServiceImpl implements SearchService {
      * @return List<Page> найденные объекты Page соответствующие ключевым словам
      */
     private List<Page> findPageMatchingQuery(List<String> lemmasStrings, Site site) {
+        if (lemmasStrings.size() < 1) {
+            return new ArrayList<>();
+        }
         List<Page> pages = getListPagesFoundLemmas(lemmasStrings.get(0), site);
         for (int i = 1; i < lemmasStrings.size(); i++) {
             List<Page> pagesNext = getListPagesFoundLemmas(lemmasStrings.get(i), site);

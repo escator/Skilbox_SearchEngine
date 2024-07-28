@@ -53,7 +53,6 @@ public class StatisticsServiceImpl implements StatisticsService {
             item.setPages(pages);
             item.setLemmas(lemmas);
 
-            // TODO установить нулевые данные при первом запуске
             Site siteEntity = siteService.findSite(null, sitesList.get(i).getName(), sitesList.get(i).getUrl());
             if (siteEntity == null) {
                 break;
