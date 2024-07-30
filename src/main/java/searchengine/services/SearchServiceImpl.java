@@ -33,6 +33,9 @@ public class SearchServiceImpl implements SearchService {
     private final int OFFSET_SNIPPET_END = 5; // индекс смещения сниппера от ключ.слова вправо
     private final int MAX_LENGTH_SNIPPET = 250; // максимальная длинна сниппера
 
+    private List<SearchPageData> lastSearchResult = new ArrayList<>();
+    private String lastQuery = "";
+
     public SearchServiceImpl(IndexService indexService,
                              SiteService siteService,
                              LemmaRepository lemmaRepository) throws Exception {
@@ -46,6 +49,12 @@ public class SearchServiceImpl implements SearchService {
 
     @Override
     public SearchResponse search(String query, int offset, int limit, String siteUrl) {
+        // Сравниваем запрос с предыдущим, если они равны то получаем ответ из буффера
+        if (lastQuery.equals(query) && offset != 0) {
+            return createResponse(lastSearchResult, offset, limit);
+        }
+        lastQuery = query.substring(0);
+        lastSearchResult = new ArrayList<>();
 
         Site site = siteService.findSite(null, null, siteUrl);
         // получаем map лемм из строки поиска
@@ -60,11 +69,11 @@ public class SearchServiceImpl implements SearchService {
         List<Page> pages = findPageMatchingQuery(lemmasSortList, site);
 
         List<SearchPageData> searchingPages = convertPageToSearchPageData(pages, lemmasSortList, site);
-        searchingPages = searchingPages.stream()
+        lastSearchResult = searchingPages.stream()
                 .sorted(Comparator.comparingDouble(SearchPageData::getRelRelevance).reversed())
                 .toList();
 
-        return createResponse(searchingPages, offset, limit);
+        return createResponse(lastSearchResult, offset, limit);
     }
 
     /**

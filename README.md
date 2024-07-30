@@ -17,3 +17,11 @@
 * 
 
 ## Стек технологий
+* Spring Boot
+* Apache Lucene 
+* lombook
+* Jsop 1.17.2
+* Hibernate
+
+## Запуск проекта
+
