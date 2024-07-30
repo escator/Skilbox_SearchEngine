@@ -57,14 +57,18 @@ public class SearchServiceImpl implements SearchService {
         lastSearchResult = new ArrayList<>();
 
         Site site = siteService.findSite(null, null, siteUrl);
+
         // получаем map лемм из строки поиска
         HashMap<String, Integer> lemmasSearchQueryMap = morphologyService.getLemmasFromText(query);
+
         // удаляем те леммы, которые встречаются слишком часто и
         // заменяем value на колво страниц на которых лемма встретилась
         lemmasSearchQueryMap = removeFerquenterLemmas(lemmasSearchQueryMap, 80.0, siteUrl);
+
         // сортируем леммы по частоте от мин до макс
         Map<String, Integer> sortMap = sortLemmasMap(lemmasSearchQueryMap);
         List<String> lemmasSortList = sortMap.keySet().stream().toList();
+
         // отбираем страницы содержащие все леммы из запроса
         List<Page> pages = findPageMatchingQuery(lemmasSortList, site);
 
@@ -178,8 +182,7 @@ public class SearchServiceImpl implements SearchService {
             return "";
         }
         String html = page.getContent();
-        Document doc = Jsoup.parse(html);
-        return doc.title();
+        return Jsoup.parse(html).title();
     }
 
     /**
@@ -266,7 +269,6 @@ public class SearchServiceImpl implements SearchService {
             entity.setLemma(lemma);
             entitiesIndex.addAll(indexEntityRepository.findAll(Example.of(entity)));
         }
-
         return entitiesIndex.stream()
                 .map(IndexEntity::getPage)
                 .collect(Collectors.toList());
@@ -299,7 +301,6 @@ public class SearchServiceImpl implements SearchService {
     private List<Lemma> findLemmaByName(String lemmaStr, Site site) {
         Lemma exLemma = new Lemma(lemmaStr, site);
         return lemmaRepository.findAll(Example.of(exLemma));
-
     }
 
     /**

@@ -42,10 +42,12 @@ public class PageScannerService extends RecursiveTask<PageScannerResponse> {
                     PageScannerResponse.status.DOUBLE_LINK,
                     "Ссылка уже добавлена");
         }
+
+        LinkStorage.addLink(url);
+
         // Выдерживаем паузу в 200 - 300мс перед началом загрузки страницы
         // рандомность для снижения шанса блокировки
         pause(200, 500);
-        LinkStorage.addLink(url);
 
         // Список ветвей рекурсии для каждой ссылки
         List<PageScannerService> tasks = new ArrayList<>();

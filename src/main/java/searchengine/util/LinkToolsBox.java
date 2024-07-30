@@ -9,6 +9,12 @@ import java.util.Set;
  */
 public class LinkToolsBox {
 
+    /**
+     * Приводит список Url-адресов к абсолютному виду.
+     * @param links
+     * @param rootUrl
+     * @return
+     */
     public static LinkedHashSet<String> normalizeLinks(Set<String> links, String rootUrl) {
         LinkedHashSet<String> normalizedLinks = new LinkedHashSet<>();
         for (String link : links) {
@@ -52,7 +58,7 @@ public class LinkToolsBox {
     }
 
     /**
-     * Проперяет является ли адрес url, удаляет завершающий слеш если он есть
+     * Проверяет является ли адрес url, удаляет завершающий слеш если он есть
      * @param url String Адрес url.
      * @return String Адрес url без завершающего слеша.
      */
@@ -70,7 +76,7 @@ public class LinkToolsBox {
     }
 
     /**
-     * Проперяет является ли адрес url
+     * Проверяет является ли строка url
      * @param url String
      * @return boolean true - Адрес url.
      */
