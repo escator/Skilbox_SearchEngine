@@ -7,7 +7,12 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+import org.springframework.beans.BeansException;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 import org.springframework.http.HttpStatus;
+import searchengine.AppContextProvider;
+import searchengine.config.JsopConnectionCfg;
 import searchengine.response.HtmlParseResponse;
 import searchengine.util.LinkToolsBox;
 
@@ -15,33 +20,32 @@ import java.io.IOException;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Сервис для парсинга html страниц.
- *
+ * сервис работает вне контекста Spring.
  */
 @Slf4j
 
 public class HtmlParseService {
     private final String url;
     private final String root;
+    private final String agent;
+    private final String referrer;
     boolean isReady = false;
-    Document document;
+    private Document document;
     @Getter
-    HtmlParseResponse response;
-    private String agent = "Mozilla/5.0  (Windows; U; WindowsNT5.1; en-US;  rv:1.8.1.13) Gecko/20080311 Firefox/2.0.0.13";
-    private String referrer  = "http://www.google.com";
+    private HtmlParseResponse response;
+
+
 
     public HtmlParseService(String url, String root) {
         this.url = url;
         this.root = root;
-    }
-
-    public HtmlParseService(String url, String root, String agent, String referrer) {
-        this.url = url;
-        this.root = root;
-        this.agent  = agent;
-        this.referrer   = referrer;
+        JsopConnectionCfg jsopConnectionCfg = (JsopConnectionCfg) AppContextProvider.getBean("jsopConnectionCfg");
+        this.agent  = jsopConnectionCfg.getAgent();
+        this.referrer   = jsopConnectionCfg.getReferrer();
     }
 
     /**
@@ -85,10 +89,7 @@ public class HtmlParseService {
         }
         Elements links = document.select("a[href]");
 
-        LinkedHashSet<String> linkSet = new LinkedHashSet<>();
-        for (Element element : links) {
-            linkSet.add(element.attr("href"));
-        }
+        Set<String> linkSet = links.stream().map(e -> e.attr("href")).collect(Collectors.toSet());
         return LinkToolsBox.normalizeLinks(linkSet, root);
     }
 

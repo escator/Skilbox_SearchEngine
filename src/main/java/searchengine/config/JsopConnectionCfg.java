@@ -6,10 +6,10 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Component;
 
-@Component
-@ConfigurationProperties(prefix = "jsop")
-@Getter
 @Setter
+@Getter
+@Component
+@ConfigurationProperties(prefix = "jsop-cfg")
 public class JsopConnectionCfg {
     private String agent;
     private String referrer;
