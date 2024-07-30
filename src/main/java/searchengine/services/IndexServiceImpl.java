@@ -36,7 +36,6 @@ public class IndexServiceImpl implements IndexService {
     private final PageRepository pageRepository;
     private final LemmaRepository lemmaRepository;
     private final IndexEntityRepository indexEntityRepository;
-    //TODO привести  интерфейс MorphologyService
     private final JsopConnectionCfg jsopConnectionCfg;
 
     @Override

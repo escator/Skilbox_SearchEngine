@@ -173,7 +173,6 @@ public class SiteServiceImpl implements SiteService {
 
     @Override
     public void deleteAllSite() {
-        //TODO обработать исключение возникающее при работе с EntityRepository при работе с заполненной БД
         try {
             indexEntityRepository.deleteAll();
             lemmaRepository.deleteAll();
