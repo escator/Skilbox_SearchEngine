@@ -29,9 +29,9 @@ public class SearchServiceImpl implements SearchService {
     private final LemmaRepository lemmaRepository;
     private final IndexEntityRepository indexEntityRepository;
 
-    private final int OFFSET_SNIPPET_START = 10; // индекс смещения сниппера от ключ.слова влево
-    private final int OFFSET_SNIPPET_END = 10; // индекс смещения сниппера от ключ.слова вправо
-    private final int MAX_LENGTH_SNIPPET = 300; // максимальная длинна сниппера
+    private final int OFFSET_SNIPPET_START = 5; // индекс смещения сниппера от ключ.слова влево
+    private final int OFFSET_SNIPPET_END = 5; // индекс смещения сниппера от ключ.слова вправо
+    private final int MAX_LENGTH_SNIPPET = 250; // максимальная длинна сниппера
 
     public SearchServiceImpl(IndexService indexService,
                              SiteService siteService,
@@ -64,8 +64,23 @@ public class SearchServiceImpl implements SearchService {
                 .sorted(Comparator.comparingDouble(SearchPageData::getRelRelevance).reversed())
                 .toList();
 
+        return createResponse(searchingPages, offset, limit);
+    }
+
+    /**
+     * Возвращает сформированный объект SearchResponse. С учетом параметров offset и limit
+     * @param searchingPages Спсок объектов SearchPageData
+     * @param offset отступ от начала списка
+     * @param limit максимальное количество элементов, которые нужно вернуть
+     * @return объект SearchResponse
+     */
+    private SearchResponse createResponse(List<SearchPageData> searchingPages, int offset, int limit) {
         List<SearchItemData> items = new ArrayList<>();
-        for (SearchPageData page : searchingPages) {
+        for (int i = offset; i < searchingPages.size(); i++) {
+            SearchPageData page = searchingPages.get(i);
+            if (items.size() >= limit) {
+                break;
+            }
             SearchItemData item = new SearchItemData();
             item.setSite(page.getPage().getSite().getUrl());
             item.setSiteName(page.getPage().getSite().getName());
@@ -77,10 +92,8 @@ public class SearchServiceImpl implements SearchService {
         }
         SearchResponse response = new SearchResponse();
         response.setResult(true);
-        response.setCount(items.size());
+        response.setCount(searchingPages.size());
         response.setData(items);
-
-        //searchingPages.forEach(page -> log.info("id: {}, rel: {} ", page.getPage().getId(), page.getRelRelevance()));
         return response;
     }
 
@@ -175,7 +188,7 @@ public class SearchServiceImpl implements SearchService {
             return new ArrayList<>();
         }
         List<SearchPageData> searchingPagesList = new ArrayList<>();
-        List<Lemma> lemmas = findAllLemmaByName(lemmasList, site);
+        List<Lemma> lemmas = findAllLemmasByName(lemmasList, site);
         for (Page page : pagesList) {
             SearchPageData searchingPage = new SearchPageData();
             IndexEntity entity = new IndexEntity();
@@ -258,7 +271,7 @@ public class SearchServiceImpl implements SearchService {
      *             null поиск по всей БД
      * @return List<Lemma> найденные объекты леммы
      */
-    private List<Lemma> findAllLemmaByName(List<String> lemmaStr, Site site) {
+    private List<Lemma> findAllLemmasByName(List<String> lemmaStr, Site site) {
         List<Lemma> lemmasList = new ArrayList<>();
         for (String lemma : lemmaStr) {
             lemmasList.addAll(findLemmaByName(lemma, site));
@@ -280,6 +293,11 @@ public class SearchServiceImpl implements SearchService {
 
     }
 
+    /**
+     * Возвращает Map<String, Integer>отсортированный по частоте встречаемости указанном в value
+     * @param lemmasMap Map<String, Integer>
+     * @return Map<String, Integer> отсортированный по частоте встречаемости
+     */
     private Map<String, Integer> sortLemmasMap(Map<String, Integer> lemmasMap) {
         return lemmasMap.entrySet().stream()
                 .sorted(Map.Entry.<String, Integer>comparingByValue()).collect(Collectors.toMap(
@@ -316,7 +334,7 @@ public class SearchServiceImpl implements SearchService {
     }
 
     /**
-     * Количество страниц на которых присутствует ключевое слово
+     * Подсчитывает количество страниц на которых присутствует ключевое слово
      *
      * @param lemmaStr слово для выбора
      * @param site     Site объект сайта для которого будет делаться выборка

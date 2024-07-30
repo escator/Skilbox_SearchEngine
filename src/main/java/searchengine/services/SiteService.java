@@ -20,13 +20,25 @@ public interface SiteService {
      */
     Site findSite(Integer id, String name, String url);
 
-    Site findSiteById(Integer id);
+    /**
+     * Найти в БД сайт, по DTO контейнеру SiteDTO
+     * @param siteDto SiteDto объект с параметрами поиска
+     * @return Site сущность или null
+     */
+    public Site findSiteByDTO(SiteDto siteDto);
+
     public void updateLastErrorOnSite(Site site, String error);
     public void updateStatusOnSite(Site site, IndexingStatus newIndexingStatus);
     Site saveSite(Site site);
     void deleteAllSite();
     void deleteSite(Site site);
-    List<Site> findAllSites();
+
+    /**
+     * Получить список всех страниц сайта
+     * @param siteDto siteDto объект задающий параметры поиска
+     * @return List<Page> список найденных страниц
+     *         если DTO == null, то вернет пустой список
+     */
     public List<Page> findPagesBySite(SiteDto siteDto);
     Page savePage(Page page);
     void deletePage(Page page);
@@ -43,16 +55,25 @@ public interface SiteService {
     /**
      * Количество страниц в БД или на конкретном сайте.
      * @param siteDto siteDto объект site, для которого будет произведена выборка
+     *                или null для подсчета по всей БД
      * @return int количество страниц
      */
     int countPagesOnSite(SiteDto siteDto);
 
     /**
-     * Возвращает суммарное количество лемм на сайте
+     * Подсчитывает количество лемм на сайте или в во всей БД
      *
      * @param siteDto экземпляр сущности siteDto или null
+     *                для подсчета по всей БД
      * @return int суммарное количество лемм на сайте или в БД
      */
     int сountAllLemmasOnSite(SiteDto siteDto);
+
+    /**
+     * Получить время последнего обновления статуса сайта в формате timestamp
+     * @param siteDto siteDto экземпляр сущности siteDto или null
+     * @return long timestamp последнего обновления статуса сайта в формате timestamp,
+     *              если DTO == null, то возвращает 0
+     */
     public long getStatusTime(SiteDto siteDto);
 }

@@ -51,7 +51,7 @@ public class ThreadIndexingManager implements Runnable {
             // Обрабатываем леммы
             try {
                 MorphologyService morphologyService = new MorphologyServiceImpl(indexService);
-                morphologyService.processSite(indexService, pageDto.getSite());
+                morphologyService.processSite(pageDto.getSite());
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }

@@ -44,22 +44,22 @@ public class MorphologyServiceImpl implements MorphologyService {
     }
 
     @Override
-    public void processOnePage(IndexService indexService, Page page) {
+    public void processOnePage(Page page) {
         this.site = page.getSite();
         List<Page> pages = new ArrayList<>();
         pages.add(page);
-        process(indexService, pages);
+        process(pages);
     }
 
     @Override
-    public void processSite(IndexService indexService, Site site) {
+    public void processSite(Site site) {
         this.site = site;
         List<Page> pages = siteService.findPagesBySite(new SiteDto(site.getUrl(), site.getName()));
-        process(indexService, pages);
+        process(pages);
     }
 
 
-    private void process(IndexService indexService, List<Page> pages) {
+    private void process(List<Page> pages) {
 
         for (Page page : pages) {
             if (page.getCode() != 200)

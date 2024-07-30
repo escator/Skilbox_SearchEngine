@@ -9,8 +9,8 @@ import java.util.List;
 
 public interface MorphologyService {
     HashMap<String, Integer> getLemmasFromText(String text);
-    void processOnePage(IndexService indexService, Page page);
-    void processSite(IndexService indexService, Site site);
+    void processOnePage(Page page);
+    void processSite(Site site);
     //void process(IndexService indexService, Site site);
     List<String> getWords(String text);
     boolean isNotWord(List<String> words);

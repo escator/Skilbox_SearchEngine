@@ -47,6 +47,13 @@ public class SiteServiceImpl implements SiteService {
         return res; // return null if not found
     }
 
+    public Site findSiteByDTO(SiteDto siteDto) {
+        if (siteDto == null) {
+            return null;
+        }
+        return findSite(null, siteDto.getName(), siteDto.getUrl());
+    }
+
     @Override
     public Site saveSite(Site site) {
         return siteRepository.save(site);
@@ -59,13 +66,8 @@ public class SiteServiceImpl implements SiteService {
         siteRepository.delete(site);
     }
 
-    @Override
-    public Site findSiteById(Integer id) {
+    private Site findSiteById(Integer id) {
         return siteRepository.findById(id).orElse(null);
-    }
-    @Override
-    public List<Site> findAllSites() {
-        return siteRepository.findAll();
     }
 
     @Override
@@ -90,12 +92,16 @@ public class SiteServiceImpl implements SiteService {
 
     @Override
     public List<Page> findPagesBySite(SiteDto siteDto) {
-        Site site = findSite(null, siteDto.getName(), siteDto.getUrl());
-        Page page = new Page();
-        page.setSite(site);
-        Example<Page> example = Example.of(page);
-        List<Page> result = pageRepository.findAll(example);
-        return result;
+        Site site;
+        if ((site = findSiteByDTO(siteDto)) == null) {
+            return new ArrayList<>();
+        } else {
+            Page page = new Page();
+            page.setSite(site);
+            Example<Page> example = Example.of(page);
+            List<Page> result = pageRepository.findAll(example);
+            return result;
+        }
     }
 
     @Override
@@ -136,36 +142,38 @@ public class SiteServiceImpl implements SiteService {
 
     @Override
     public int countPagesOnSite(SiteDto siteDto) {
-        if (siteDto == null) {
-            return (int) pageRepository.count();
+        int res = 0;
+        Site site;
+        if ((site = findSiteByDTO(siteDto)) == null) {
+            res = (int) pageRepository.count();
+        } else {
+            Page page = new Page();
+            page.setSite(site);
+            Example<Page> example = Example.of(page);
+            Long count = pageRepository.count(example);
+            res = count.intValue();
         }
-        Site site = findSite(null, siteDto.getName(), siteDto.getUrl());
-        Page page = new Page();
-        page.setSite(site);
-        Example<Page> example = Example.of(page);
-        Long count = pageRepository.count(example);
-        return count.intValue();
+        return res;
     }
 
 
     @Override
     public int сountAllLemmasOnSite(SiteDto siteDto) {
         int res = 0;
-        if (siteDto == null) {
+        Site site;
+        if ((site = findSiteByDTO(siteDto)) == null) {
             res = (int) lemmaRepository.count();
         } else {
-            Site site = findSite(null, siteDto.getName(), siteDto.getUrl());
-            if (site != null) {
-                Lemma lemma = new Lemma();
-                lemma.setSite(site);
-                res = (int) lemmaRepository.count(Example.of(lemma));
-            }
+            Lemma lemma = new Lemma();
+            lemma.setSite(site);
+            res = (int) lemmaRepository.count(Example.of(lemma));
         }
         return res;
     }
 
     @Override
     public void deleteAllSite() {
+        //TODO обработать исключение возникающее при работе с EntityRepository при работе с заполненной БД
         try {
             indexEntityRepository.deleteAll();
             lemmaRepository.deleteAll();
@@ -178,14 +186,16 @@ public class SiteServiceImpl implements SiteService {
 
     @Override
     public long getStatusTime(SiteDto siteDto) {
-        if (siteDto == null) {
-            return 0;
+        long res = 0;
+        Site site;
+        if ((site = findSiteByDTO(siteDto)) == null) {
+            return res;
+        } else {
+            LocalDateTime statusTime = site.getStatusTime();
+            res = statusTime.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
         }
-        Site site = findSite(null, siteDto.getName(), siteDto.getUrl());
-        if (site == null) {
-            return 0;
-        }
-        LocalDateTime statusTime = site.getStatusTime();
-        return statusTime.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
+        return res;
     }
+
+
 }

@@ -28,7 +28,7 @@ public class ApiController {
                          SiteService siteService) {
         this.statisticsService = statisticsService;
         this.indexService = indexService;
-        this.searchService  = searchService;
+        this.searchService = searchService;
         this.siteService = siteService;
     }
 
@@ -53,20 +53,21 @@ public class ApiController {
 
     @GetMapping("/stopIndexing")
     public ResponseEntity<IndexingResponse> stopIndexing() {
-        if (!RunIndexMonitor.isIndexingRunning())  {
+        if (!RunIndexMonitor.isIndexingRunning()) {
             return new ResponseEntity<IndexingResponse>(
                     new IndexingResponse(false, "Индексация не запущена"),
                     HttpStatus.FORBIDDEN);
-        } else {
-            RunIndexMonitor.setStopIndexing(true);
-            return new ResponseEntity<IndexingResponse>(
-                    new IndexingResponse(true,  null),
-                    HttpStatus.OK);
         }
+        log.info("Controller: user stopped indexing");
+        RunIndexMonitor.setStopIndexing(true);
+        return new ResponseEntity<IndexingResponse>(
+                new IndexingResponse(true, null),
+                HttpStatus.OK);
+        
     }
 
     @PostMapping("/indexPage")
-    public ResponseEntity<IndexingResponse> indexPage(SiteDto siteDto)  {
+    public ResponseEntity<IndexingResponse> indexPage(SiteDto siteDto) {
         log.info("Controller: index page {}", siteDto.getUrl());
         IndexingResponse response = indexService.indexingPage(siteDto);
         return new ResponseEntity<IndexingResponse>(response, HttpStatus.OK);
@@ -76,7 +77,7 @@ public class ApiController {
     public ResponseEntity<SearchResponse> search(
             @RequestParam String query,
             @RequestParam(required = false) Integer offset,
-            @RequestParam(required  = false) Integer limit,
+            @RequestParam(required = false) Integer limit,
             @RequestParam(required = false) String site) {
         SearchResponse response = searchService.search(query, offset, limit, site);
         return new ResponseEntity(response, HttpStatus.OK);
