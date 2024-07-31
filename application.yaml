@@ -8,10 +8,14 @@ spring:
     password: ya78yrc8n4w3984
     url: jdbc:mysql://localhost:3306/search_engine?useSSL=false&requireSSL=false&allowPublicKeyRetrieval=true
   jpa:
-    show_sql: false
-    hibernate.ddl-auto: update
+    show_sql: true
+    hibernate.ddl-auto: create
   jackson:
     default-property-inclusion: non_null
+
+logging:
+  level:
+    ROOT: INFO
 
 jsop-cfg:
   agent: Mozilla/5.0 (Windows; U; WindowsNT5.1; en-US; rv1.8.1.6) Gecko/20070725 Firefox/2.0.0.6
@@ -23,8 +27,8 @@ indexing-settings:
       name: Konstantin Shibkov
 #    - url: https://www.lenta.ru
 #      name: Лента.ру
-    - url: https://academynsk.ru/
-      name: Салон красоты
+#    - url: https://academynsk.ru/
+#      name: Салон красоты
 #    - url: https://www.playback.ru
 #      name: PlayBack.Ru
 #    - url: https://motovar.ru/

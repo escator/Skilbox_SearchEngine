@@ -1,6 +1,7 @@
 package searchengine.services;
 
 import lombok.extern.slf4j.Slf4j;
+import searchengine.exception.IndexingSiteException;
 import searchengine.response.HtmlParseResponse;
 import searchengine.dto.index.PageDto;
 import searchengine.response.PageScannerResponse;
@@ -90,7 +91,7 @@ public class PageScannerService extends RecursiveTask<PageScannerResponse> {
     private void pause(int min, int max)  {
         int duration = min + (int)(Math.random() * (max - min));
         try {
-            log.info(Thread.currentThread().getName() + " sleeping for " + duration + " ms");
+            //log.info(Thread.currentThread().getName() + " sleeping for " + duration + " ms");
             Thread.sleep(duration);
         } catch (InterruptedException e) {
             log.info("InterruptedException while sleep", e);

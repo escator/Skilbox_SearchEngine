@@ -2,7 +2,6 @@ package searchengine.services;
 
 import lombok.extern.slf4j.Slf4j;
 import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
 import org.springframework.data.domain.Example;
 import org.springframework.stereotype.Service;
 import searchengine.dto.index.SiteDto;
@@ -59,7 +58,7 @@ public class SearchServiceImpl implements SearchService {
         Site site = siteService.findSite(null, null, siteUrl);
 
         // получаем map лемм из строки поиска
-        HashMap<String, Integer> lemmasSearchQueryMap = morphologyService.getLemmasFromText(query);
+        HashMap<String, Integer> lemmasSearchQueryMap = morphologyService.getLemmasStrFromText(query);
 
         // удаляем те леммы, которые встречаются слишком часто и
         // заменяем value на колво страниц на которых лемма встретилась
