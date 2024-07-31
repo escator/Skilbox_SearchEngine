@@ -8,8 +8,8 @@ spring:
     password: ya78yrc8n4w3984
     url: jdbc:mysql://localhost:3306/search_engine?useSSL=false&requireSSL=false&allowPublicKeyRetrieval=true
   jpa:
-    show_sql: true
-    hibernate.ddl-auto: create
+    show_sql: false
+    hibernate.ddl-auto: update
   jackson:
     default-property-inclusion: non_null
 
@@ -27,10 +27,10 @@ indexing-settings:
       name: Konstantin Shibkov
 #    - url: https://www.lenta.ru
 #      name: Лента.ру
-#    - url: https://academynsk.ru/
-#      name: Салон красоты
-#    - url: https://www.playback.ru
-#      name: PlayBack.Ru
+    - url: https://academynsk.ru/
+      name: Салон красоты
+    - url: https://www.playback.ru
+      name: PlayBack.Ru
 #    - url: https://motovar.ru/
 #      name: Продажа запчастей и расходных материалов
 #    - url: https://ipfran.ru/

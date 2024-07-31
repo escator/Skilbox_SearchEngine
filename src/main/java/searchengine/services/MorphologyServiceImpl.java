@@ -142,21 +142,30 @@ public class MorphologyServiceImpl implements MorphologyService {
     }
 
     private List<IndexEntity> makeIndexListForSave(List<Page> pages) throws Exception {
-        log.info("Создание списка лемм для сохранения в БД");
+        log.info("Создание списка индекса сайта {} для сохранения в БД", site.getUrl());
+        List<Lemma> lemmasOnDB = findLemmasByName(null, site);
+        Map<String, Lemma> mapLemmas = new HashMap<>();
+
+        // создаем Map<String, Lemma> для удобства дальнейшей обработки
+        for (Lemma lemma : lemmasOnDB) {
+            mapLemmas.put(lemma.getLemma(), lemma);
+        }
         List<IndexEntity> listForSaveOut = new ArrayList<>(); // список для сохранения в БД
         for (Page page : pages) {
             HashMap<String, Integer> lemmasOnPageMap = getLemmasStrFromText(stripHtml(page.getContent()));
             for (String lemmaStr : lemmasOnPageMap.keySet()) {
                 IndexEntity indexEntity = new IndexEntity();
-                indexEntity.setLemma(findLemmaByName(lemmaStr, page.getSite()));
+                indexEntity.setLemma(mapLemmas.get(lemmaStr));
                 indexEntity.setPage(page);
                 indexEntity.setRank(lemmasOnPageMap.get(lemmaStr).doubleValue());
                 listForSaveOut.add(indexEntity);
             }
         }
-        log.info("Сохранение списка лемм в БД");
+        log.info("Сохранение индекса сайта {} в БД", site.getUrl());
         return listForSaveOut;
     }
+
+
 
 
     /**
@@ -169,7 +178,7 @@ public class MorphologyServiceImpl implements MorphologyService {
      */
     private HashMap<String, Lemma> getAllLemmasFromDB(Site site) {
         Lemma lemEx = new Lemma();
-        lemEx.setSite(site);
+        lemEx.setSite(siteService.findSite(site.getId(),null,null));
         List<Lemma> lemmaList = lemmaRepository.findAll(Example.of(lemEx));
         // переводим List в Map<String, Lemma> для удобства дальнейшей обработки
         HashMap<String, Lemma> lemmaMap = new HashMap<>();
@@ -182,7 +191,7 @@ public class MorphologyServiceImpl implements MorphologyService {
     private Lemma strToLemma(String lemmaStr, Site site) {
         Lemma lemmaEntity = new Lemma();
         lemmaEntity.setLemma(lemmaStr);
-        lemmaEntity.setSite(site);
+        lemmaEntity.setSite(siteService.findSite(site.getId(),null,null));
         return lemmaEntity;
     }
 
@@ -264,10 +273,7 @@ public class MorphologyServiceImpl implements MorphologyService {
     }
 
     private Lemma findLemmaByName(String word, Site site) {
-        Lemma lemma = new Lemma();
-        lemma.setLemma(word);
-        lemma.setSite(site);
-        return lemmaRepository.findOne(Example.of(lemma)).orElse(null);
+        return lemmaRepository.findOne(Example.of(strToLemma(word, site))).orElse(null);
     }
 
     private String stripHtml(String html) {
