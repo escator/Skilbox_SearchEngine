@@ -1,5 +1,10 @@
 package searchengine.util;
 
+import lombok.extern.slf4j.Slf4j;
+
+import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
@@ -7,6 +12,7 @@ import java.util.Set;
  * @author Chernyakov Pavel
  * Класс содержит служебные утилиты предназначенные для обработки Url-адресов.
  */
+@Slf4j
 public class LinkToolsBox {
 
     /**
@@ -151,5 +157,17 @@ public class LinkToolsBox {
 
     public static boolean isValidUrl(String url) {
       return true;
+    }
+
+    public static int checkConnectLink(String url) {
+        int responseCode = 0;
+        try {
+            HttpURLConnection huc = (HttpURLConnection) new URL(url).openConnection();
+            responseCode = huc.getResponseCode();
+        } catch (IOException e) {
+            log.info("IOException: при подключении к url: " + url);
+            e.printStackTrace();
+        }
+        return responseCode;
     }
 }

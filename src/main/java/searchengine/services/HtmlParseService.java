@@ -87,11 +87,11 @@ public class HtmlParseService {
     private int checkConnectionOnUrl(String url) {
         int responseCode = 0;
         try {
-            URL url1 = new URL(url);
-            HttpURLConnection huc = (HttpURLConnection) url1.openConnection();
+            HttpURLConnection huc = (HttpURLConnection) new URL(url).openConnection();
             responseCode = huc.getResponseCode();
             log.debug("Content-Type: {} url {}", huc.getContentType(), url);
-            if (!huc.getHeaderField("Content-Type").contains("text/html")) {
+            if (validResponseCode.contains(responseCode)
+                    && !huc.getHeaderField("Content-Type").contains("text/html")) {
                 responseCode = 415;
             }
             huc.disconnect();

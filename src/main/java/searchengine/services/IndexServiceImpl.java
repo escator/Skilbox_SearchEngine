@@ -20,6 +20,7 @@ import searchengine.util.LinkToolsBox;
 import searchengine.util.SiteToolsBox;
 
 import java.io.IOException;
+import java.net.URL;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -87,32 +88,23 @@ public class IndexServiceImpl implements IndexService {
             return new IndexingResponse(false, "Данная страница находится за пределами сайтов,указанных в конфигурационном файле");
         }
 
+        int code = LinkToolsBox.checkConnectLink(url);
+        if (!jsopConnectionCfg.getValidCodes().contains(code)) {
+            return new IndexingResponse(false, "Код: " + code + " Ошибка доступа к " + url);
+        }
+
         // Если посещали данную страницу, то удаляем её из БД
         if (isVisitedLinks(url)) {
             siteService.deletePageByUrl(url);
         }
 
-        HtmlParseService htmlParseService = new HtmlParseService(url, LinkToolsBox.extractRootDomain(url));
-        HtmlParseResponse htmlParseResponse = htmlParseService.parse();
-        if (htmlParseResponse.getStatus() == 200) {
+        HtmlParseResponse htmlParseResponse = new HtmlParseService(url, LinkToolsBox.extractRootDomain(url)).parse();
+        if (jsopConnectionCfg.getValidCodes().contains(htmlParseResponse.getStatus())) {
             Page page = new Page();
             page.setPath(LinkToolsBox.getShortUrl(url, LinkToolsBox.extractRootDomain(url)));
             page.setCode(htmlParseResponse.getStatus());
             page.setSite(siteService.findSite(null, null, LinkToolsBox.extractRootDomain(url)));
-            if (page.getSite() == null) {
-                Site site = new Site();
-                List<SiteDto> siteDtoList = sitesList.getSites();
-                for (SiteDto siteD : siteDtoList) {
-                    if (siteD.getUrl().equals(LinkToolsBox.extractRootDomain(url))) {
-                        site.setName(siteD.getName());
-                        site.setUrl(siteD.getUrl());
-                        break;
-                    }
-                }
-                site.setStatus(IndexingStatus.RANDOM_PAGE);
-                site.setStatusTime(LocalDateTime.now());
-                page.setSite(siteService.saveSite(site));
-            }
+
             page.setContent(htmlParseResponse.getDocument().toString());
             page = siteService.savePage(page);
 
@@ -122,7 +114,11 @@ public class IndexServiceImpl implements IndexService {
         return new IndexingResponse(true, null);
     }
 
+
+
+
     private void lemmatizePage(Page page) {
+
         try {
             MorphologyService morphologyService = new MorphologyServiceImpl();
             morphologyService.processOnePage(page);
