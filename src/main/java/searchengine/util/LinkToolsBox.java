@@ -148,4 +148,8 @@ public class LinkToolsBox {
         if (end < 0) end = url.length();
         return url.substring(0, end);
     }
+
+    public static boolean isValidUrl(String url) {
+      return true;
+    }
 }

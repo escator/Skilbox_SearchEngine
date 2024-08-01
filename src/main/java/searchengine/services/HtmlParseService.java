@@ -17,6 +17,8 @@ import searchengine.response.HtmlParseResponse;
 import searchengine.util.LinkToolsBox;
 
 import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -34,11 +36,9 @@ public class HtmlParseService {
     private final String agent;
     private final String referrer;
     boolean isReady = false;
-    private Document document;
     @Getter
     private HtmlParseResponse response;
-
-
+    private final Set<Integer> validResponseCode;
 
     public HtmlParseService(String url, String root) {
         this.url = url;
@@ -46,6 +46,7 @@ public class HtmlParseService {
         JsopConnectionCfg jsopConnectionCfg = (JsopConnectionCfg) AppContextProvider.getBean("jsopConnectionCfg");
         this.agent  = jsopConnectionCfg.getAgent();
         this.referrer   = jsopConnectionCfg.getReferrer();
+        this.validResponseCode = jsopConnectionCfg.getValidCodes();
     }
 
     /**
@@ -53,27 +54,52 @@ public class HtmlParseService {
      * @return HtmlResponse - содержащий код ответа и Document
      */
     public HtmlParseResponse parse() {
+        // Установленный флаг isReady - флаг, показывающий, что данные уже были
+        // загружены. Позволяет избежать повторной загрузки данных при повторном
+        // обращении к данному экземпляру
         if  (isReady)  {
-            return new HtmlParseResponse(document, HttpStatus.OK.value());
+            return response;
         }
 
         response  = new HtmlParseResponse();
-        Connection connection  = Jsoup.connect(url)
-                .userAgent(agent)
-                .referrer(referrer);
+        int responseCode = checkConnectionOnUrl(url);
+        if (validResponseCode.contains(responseCode)) {
+            try {
+                log.info("[Getting BODY url {}] Status code: {}", url, responseCode);
+                Document document = Jsoup.connect(url)
+                        .userAgent(agent)
+                        .referrer(referrer)
+                        .get();
+                isReady= true;
+                response.setDocument(document);
+            } catch (IOException e) {
+                log.info("Oшибка при получении данных из {}" + url);
+                e.printStackTrace();
+            }
 
-        try {
-            Connection.Response responseJsoup = connection.execute();
-            log.info("Status code:" + responseJsoup.statusCode() + " [Getting BODY from " + url + "]");
-            document = responseJsoup.parse();
-            isReady= true;
-            response.setDocument(document);
-            response.setStatus(responseJsoup.statusCode());
-        } catch (IOException e) {
+        } else {
             response.setDocument(new Document(""));
-            response.setStatus(400);
         }
+        response.setStatus(responseCode);
         return response;
+    }
+
+    private int checkConnectionOnUrl(String url) {
+        int responseCode = 0;
+        try {
+            URL url1 = new URL(url);
+            HttpURLConnection huc = (HttpURLConnection) url1.openConnection();
+            responseCode = huc.getResponseCode();
+            log.debug("Content-Type: {} url {}", huc.getContentType(), url);
+            if (!huc.getHeaderField("Content-Type").contains("text/html")) {
+                responseCode = 415;
+            }
+            huc.disconnect();
+        } catch (IOException e) {
+            log.info("IOException: при подключении к url: " + url);
+            e.printStackTrace();
+        }
+        return responseCode;
     }
 
     /**
@@ -82,12 +108,12 @@ public class HtmlParseService {
      */
     public Set<String> getAllLinksOnPage() {
         if (!isReady) {
-            document = parse().getDocument();
+            parse().getDocument();
         }
-        if (document == null) {
+        if (response.getDocument() == null) {
             return new HashSet<>();
         }
-        Elements links = document.select("a[href]");
+        Elements links = response.getDocument().select("a[href]");
 
         Set<String> linkSet = links.stream().map(e -> e.attr("href")).collect(Collectors.toSet());
         return LinkToolsBox.normalizeLinks(linkSet, root);

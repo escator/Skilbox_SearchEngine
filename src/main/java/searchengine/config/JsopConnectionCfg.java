@@ -6,6 +6,9 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
+import java.util.Set;
+
 @Setter
 @Getter
 @Component
@@ -13,4 +16,5 @@ import org.springframework.stereotype.Component;
 public class JsopConnectionCfg {
     private String agent;
     private String referrer;
+    Set<Integer> validCodes;
 }

@@ -9,6 +9,8 @@ import org.jsoup.Jsoup;
 import org.jsoup.safety.Safelist;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Sort;
+import searchengine.AppContextProvider;
+import searchengine.config.JsopConnectionCfg;
 import searchengine.dto.index.SiteDto;
 import searchengine.exception.NullArgException;
 import searchengine.model.IndexEntity;
@@ -34,6 +36,7 @@ public class MorphologyServiceImpl implements MorphologyService {
     private static final String WORD_TYPE_REGEX = "\\W\\w&&[^а-яА-Я\\s]";
     private static final String[] particlesNames = new String[]{"МЕЖД", "ПРЕДЛ", "СОЮЗ"};
     private Site site;
+    private final Set<Integer> validResponseCode;
 
     public MorphologyServiceImpl(IndexService indexService) throws IOException {
         this.luceneMorphology = new RussianLuceneMorphology();
@@ -41,6 +44,8 @@ public class MorphologyServiceImpl implements MorphologyService {
         this.indexEntityRepository = indexService.getIndexEntityRepository();
         this.siteService = indexService.getSiteService();
         this.indexService = indexService;
+        JsopConnectionCfg jsopConnectionCfg = (JsopConnectionCfg) AppContextProvider.getBean("jsopConnectionCfg");
+        this.validResponseCode = jsopConnectionCfg.getValidCodes();
     }
 
     @Override
@@ -83,7 +88,7 @@ public class MorphologyServiceImpl implements MorphologyService {
     private Map<String, Lemma> countLemmasFreqOnAllPages(List<Page> pages) {
         Map<String, Lemma> mapLemmasOnAllPages = new HashMap<>();
         for (Page page : pages) {
-            if (page.getCode() != 200)
+            if (!validResponseCode.contains(page.getCode()))
                 continue;
 
             HashMap<String, Integer> lemmasFromText = getLemmasStrFromText(stripHtml(page.getContent()));

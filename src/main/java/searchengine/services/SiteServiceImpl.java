@@ -173,7 +173,7 @@ public class SiteServiceImpl implements SiteService {
 
     @Override
     public void deleteAllSite() {
-        log.info("Deleting all sites");
+        log.info("Очистка БД!!!");
         try {
             indexEntityRepository.deleteAll();
             lemmaRepository.deleteAll();
