@@ -144,6 +144,12 @@ public class MorphologyServiceImpl implements MorphologyService {
         return listForSaveOut;
     }
 
+    /**
+     * Возвращает список сущностей IndexEntity для сохранения в index БД
+     * @param pages список страниц объекты Page
+     * @return List<IndexEntity> список объектов индекса
+     * @throws Exception
+     */
     private List<IndexEntity> makeIndexListForSave(List<Page> pages) throws Exception {
         log.info("Создание списка индекса сайта {} для сохранения в БД", site.getUrl());
         List<Lemma> lemmasOnDB = findLemmasByName(null, site);
@@ -167,9 +173,6 @@ public class MorphologyServiceImpl implements MorphologyService {
         log.info("Сохранение индекса сайта {} в БД", site.getUrl());
         return listForSaveOut;
     }
-
-
-
 
     /**
      * Получить из БД все lemmas для указанного сайта, в key вынесена сама лемма
@@ -232,8 +235,6 @@ public class MorphologyServiceImpl implements MorphologyService {
             } else {
                 lemmas.put(nWord, 1);
             }
-
-
         }
         return lemmas;
     }

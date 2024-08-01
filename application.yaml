@@ -33,9 +33,9 @@ indexing-settings:
 #      name: Лента.ру
     - url: https://academynsk.ru/
       name: Салон красоты
-#    - url: https://www.playback.ru
-#      name: PlayBack.Ru
-#    - url: https://motovar.ru/
-#      name: Продажа запчастей и расходных материалов
-#    - url: https://ipfran.ru/
-#      name: ipfran.ru
+    - url: https://www.playback.ru
+      name: PlayBack.Ru
+    - url: https://motovar.ru/
+      name: Продажа запчастей и расходных материалов
+    - url: https://ipfran.ru/
+      name: ipfran.ru
