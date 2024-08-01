@@ -37,11 +37,12 @@ public class SearchServiceImpl implements SearchService {
 
     public SearchServiceImpl(IndexService indexService,
                              SiteService siteService,
-                             LemmaRepository lemmaRepository) throws Exception {
+                             LemmaRepository lemmaRepository,
+                             IndexEntityRepository indexEntityRepository) throws Exception {
         this.indexService = indexService;
-        this.morphologyService = new MorphologyServiceImpl(indexService);
+        this.morphologyService = new MorphologyServiceImpl();
         this.lemmaRepository = lemmaRepository;
-        this.indexEntityRepository = indexService.getIndexEntityRepository();
+        this.indexEntityRepository = indexEntityRepository;
         this.siteService = siteService;
 
     }

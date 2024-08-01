@@ -31,19 +31,17 @@ public class MorphologyServiceImpl implements MorphologyService {
     private final LuceneMorphology luceneMorphology;
     private final LemmaRepository lemmaRepository;
     private final IndexEntityRepository indexEntityRepository;
-    private final IndexService indexService;
     private final SiteService siteService;
     private static final String WORD_TYPE_REGEX = "\\W\\w&&[^а-яА-Я\\s]";
     private static final String[] particlesNames = new String[]{"МЕЖД", "ПРЕДЛ", "СОЮЗ"};
     private Site site;
     private final Set<Integer> validResponseCode;
 
-    public MorphologyServiceImpl(IndexService indexService) throws IOException {
+    public MorphologyServiceImpl() throws IOException {
         this.luceneMorphology = new RussianLuceneMorphology();
-        this.lemmaRepository = indexService.getLemmaRepository();
-        this.indexEntityRepository = indexService.getIndexEntityRepository();
-        this.siteService = indexService.getSiteService();
-        this.indexService = indexService;
+        this.lemmaRepository = (LemmaRepository) AppContextProvider.getBean("lemmaRepository");
+        this.indexEntityRepository = (IndexEntityRepository) AppContextProvider.getBean("indexEntityRepository");
+        this.siteService = (SiteService) AppContextProvider.getBean("siteServiceImpl");
         JsopConnectionCfg jsopConnectionCfg = (JsopConnectionCfg) AppContextProvider.getBean("jsopConnectionCfg");
         this.validResponseCode = jsopConnectionCfg.getValidCodes();
     }
@@ -63,18 +61,18 @@ public class MorphologyServiceImpl implements MorphologyService {
         process(pages);
     }
 
-
+    /**
+     * Основной метод класса выполняющий обработку всех страниц.
+     * Выделение лемм и создание индекса.
+     * @param pages
+     */
     private void process(List<Page> pages) {
         try {
-//            List<Lemma> lemmasToSave = makeLemmasListForSave(pages);
-            log.info("Save lemmas to DB");
             lemmaRepository.saveAll(makeLemmasListForSave(pages));
-//            List<IndexEntity> indexEntitiesToSave = makeIndexListForSave(pages);
-            log.info("Save index entities to DB");
             indexEntityRepository.saveAll(makeIndexListForSave(pages));
         } catch (Exception e) {
-            // TODO прописать обработку ошибки
-            log.error(e.getMessage(), e);
+            log.error("Ошибка в процессе морфологической обработки данных");
+            e.printStackTrace();
         }
     }
 
@@ -281,6 +279,11 @@ public class MorphologyServiceImpl implements MorphologyService {
         return lemmaRepository.findOne(Example.of(strToLemma(word, site))).orElse(null);
     }
 
+    /**
+     * Очищает HTML от тегов
+     * @param html
+     * @return
+     */
     private String stripHtml(String html) {
         return Jsoup.clean(html, Safelist.none());
     }

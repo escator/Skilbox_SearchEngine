@@ -124,7 +124,7 @@ public class IndexServiceImpl implements IndexService {
 
     private void lemmatizePage(Page page) {
         try {
-            MorphologyService morphologyService = new MorphologyServiceImpl(this);
+            MorphologyService morphologyService = new MorphologyServiceImpl();
             morphologyService.processOnePage(page);
         } catch (IOException e) {
             log.error("Ошибка при инициализации MorphologyService", e);
